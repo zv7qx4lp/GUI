@@ -1,176 +1,203 @@
 local Notif = {}
 
-local CoreGUI = game:GetService("CoreGui")
-local TS = game:GetService("TweenService")
+-- Dịch vụ
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
 
-local HIDEUI = get_hidden_gui or gethui
-if syn and typeof(syn) == "table" and RenderWindow then syn.protect_gui = gethui; end
-local function Hide_UI(gui)
+-- Ẩn GUI để tránh bị phát hiện
+local function HideUI(gui)
+    local HIDEUI = get_hidden_gui or gethui
+    if syn and typeof(syn) == "table" and RenderWindow then
+        syn.protect_gui = gethui
+    end
     if HIDEUI then
-        gui["Parent"] = HIDEUI()
-    elseif (not is_sirhurt_closure) and (syn and syn.protect_gui) then
+        gui.Parent = HIDEUI()
+    elseif syn and syn.protect_gui then
         syn.protect_gui(gui)
-        gui["Parent"] = CoreGUI
-    elseif CoreGUI:FindFirstChild('RobloxGui') then
-        gui["Parent"] = CoreGUI.RobloxGui
+        gui.Parent = CoreGui
+    elseif CoreGui:FindFirstChild("RobloxGui") then
+        gui.Parent = CoreGui.RobloxGui
     else
-        gui["Parent"] = CoreGUI
+        gui.Parent = CoreGui
     end
 end
 
-local screen_gui = Instance.new("ScreenGui")
-Hide_UI(screen_gui)
+-- Tạo ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "NotificationGui"
+screenGui.ResetOnSpawn = false
+HideUI(screenGui)
 
+-- Tạo khung chính chứa thông báo
 local frame = Instance.new("Frame")
-frame.AnchorPoint = Vector2.new(0.5, 0.949999988079071)
-frame.BackgroundColor3 = Color3.new(1, 1, 1)
+frame.AnchorPoint = Vector2.new(1, 0.95)
 frame.BackgroundTransparency = 1
-frame.BorderColor3 = Color3.new(0, 0, 0)
-frame.BorderSizePixel = 0
-frame.Position = UDim2.new(0.5, 0, 0.954999983, 0)
-frame.Size = UDim2.new(0, 100, 0, 100)
-frame.Visible = true
-frame.Parent = screen_gui
+frame.Position = UDim2.new(0.98, -10, 0.95, 0) -- Góc dưới bên phải
+frame.Size = UDim2.new(0.3, 0, 0.3, 0)
+frame.Parent = screenGui
 
-local uilist_layout = Instance.new("UIListLayout")
-uilist_layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-uilist_layout.SortOrder = Enum.SortOrder.LayoutOrder
-uilist_layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
-uilist_layout.Parent = frame
-	
-function Notif.New(text, timee)
-    local frame_2 = Instance.new("Frame")
-    frame_2.BackgroundColor3 = Color3.new(1, 1, 1)
-    frame_2.BorderColor3 = Color3.new(0, 0, 0)
-    frame_2.BorderSizePixel = 0
-    frame_2.BackgroundTransparency = 1
-    frame_2.Size = UDim2.new(0, 100, 0, 0)
-    frame_2.Visible = true
-    frame_2.Parent = frame
-	
-    -- Main Notification Frame
-    local frame_3 = Instance.new("Frame")
-    frame_3.AnchorPoint = Vector2.new(0.5, 1)
-    frame_3.AutomaticSize = Enum.AutomaticSize.X
-    frame_3.BackgroundColor3 = Color3.new(0.141176, 0.141176, 0.141176)
-    frame_3.BackgroundTransparency = 0.20000000298023224
-    frame_3.BorderColor3 = Color3.new(0, 0, 0)
-    frame_3.Position = UDim2.new(0.5, 0, 1, 60)
-    frame_3.Size = UDim2.new(0, 0, 0, 30)
-    frame_3.Visible = true
-    frame_3.Parent = frame_2
+-- UIListLayout để xếp thông báo
+local uiListLayout = Instance.new("UIListLayout")
+uiListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+uiListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+uiListLayout.Padding = UDim.new(0, 8)
+uiListLayout.Parent = frame
 
-    local uicorner = Instance.new("UICorner")
-    uicorner.CornerRadius = UDim.new(0, 6)
-    uicorner.Parent = frame_3
+-- Cấu hình mặc định
+local config = {
+    backgroundColor = Color3.fromRGB(30, 30, 30), -- Màu nền tối
+    borderColor = Color3.fromRGB(15, 15, 15), -- Viền tối
+    textColor = Color3.fromRGB(220, 220, 220), -- Chữ sáng
+    font = Enum.Font.GothamBlack, -- Font hiện đại
+    textSize = 16, -- Kích thước chữ lớn hơn
+    cornerRadius = 8, -- Bo góc mềm mại
+    defaultDuration = 5, -- Thời gian mặc định (giây)
+    shadowColor = Color3.fromRGB(0, 0, 0), -- Màu bóng
+    shadowTransparency = 0.4, -- Bóng rõ hơn
+    shadowOffset = Vector2.new(2, 2) -- Độ lệch bóng
+}
 
-    local uipadding = Instance.new("UIPadding")
-    uipadding.PaddingBottom = UDim.new(0, 3)
-    uipadding.PaddingLeft = UDim.new(0, 3)
-    uipadding.PaddingRight = UDim.new(0, 3)
-    uipadding.PaddingTop = UDim.new(0, 3)
-    uipadding.Parent = frame_3
+-- Hàm tạo thông báo mới
+function Notif.New(params)
+    -- Kiểm tra tham số
+    params = type(params) == "table" and params or {}
+    local text = tostring(params.text or "Thông báo")
+    local time = tonumber(params.time) or config.defaultDuration
+    local textColor = params.textColor or config.textColor
+    local backgroundColor = params.backgroundColor or config.backgroundColor
 
-    local uistroke = Instance.new("UIStroke")
-    uistroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    uistroke.Color = Color3.new(0.0313726, 0.0313726, 0.0313726)
-    uistroke.Parent = frame_3
+    -- Khung chứa thông báo
+    local containerFrame = Instance.new("Frame")
+    containerFrame.BackgroundTransparency = 1
+    containerFrame.Size = UDim2.new(0, 0, 0, 0)
+    containerFrame.Parent = frame
 
-    local text_label = Instance.new("TextLabel")
-    text_label.Font = Enum.Font.Gotham
-    text_label.Text = text
-    text_label.TextColor3 = Color3.new(0.784314, 0.784314, 0.784314)
-    text_label.TextSize = 14
-    text_label.AutomaticSize = Enum.AutomaticSize.X
-    text_label.BackgroundColor3 = Color3.new(1, 1, 1)
-    text_label.BackgroundTransparency = 1
-    text_label.BorderColor3 = Color3.new(0, 0, 0)
-    text_label.BorderSizePixel = 0
-    text_label.Size = UDim2.new(0, 0, 0, 24)
-    text_label.Visible = true
-    text_label.Parent = frame_3
+    -- Khung chính thông báo
+    local notifFrame = Instance.new("Frame")
+    notifFrame.AnchorPoint = Vector2.new(1, 1)
+    notifFrame.AutomaticSize = Enum.AutomaticSize.X
+    notifFrame.BackgroundColor3 = backgroundColor
+    notifFrame.BackgroundTransparency = 1 -- Bắt đầu mờ
+    notifFrame.Position = UDim2.new(1, 100, 1, 0) -- Bắt đầu lệch phải
+    notifFrame.Size = UDim2.new(0, 0, 0, 32)
+    notifFrame.Parent = containerFrame
 
-    local uipadding_2 = Instance.new("UIPadding")
-    uipadding_2.PaddingLeft = UDim.new(0, 5)
-    uipadding_2.PaddingRight = UDim.new(0, 30)
-    uipadding_2.Parent = text_label
+    -- Giao diện
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(0, config.cornerRadius)
+    uiCorner.Parent = notifFrame
 
-    local text_button = Instance.new("TextButton")
-    text_button.Font = Enum.Font.SourceSans
-    text_button.Text = ""
-    text_button.TextColor3 = Color3.new(0, 0, 0)
-    text_button.TextSize = 14
-    text_button.AnchorPoint = Vector2.new(1, 0.5)
-    text_button.BackgroundColor3 = Color3.new(0, 0, 0)
-    text_button.BackgroundTransparency = 1
-    text_button.BorderColor3 = Color3.new(0, 0, 0)
-    text_button.BorderSizePixel = 0
-    text_button.Position = UDim2.new(1, 0, 0.5, 0)
-    text_button.Size = UDim2.new(0, 24, 0, 24)
-    text_button.Visible = true
-    text_button.Parent = frame_3
+    local uiPadding = Instance.new("UIPadding")
+    uiPadding.PaddingBottom = UDim.new(0, 4)
+    uiPadding.PaddingLeft = UDim.new(0, 10)
+    uiPadding.PaddingRight = UDim.new(0, 10)
+    uiPadding.PaddingTop = UDim.new(0, 4)
+    uiPadding.Parent = notifFrame
 
-    local uicorner_2 = Instance.new("UICorner")
-    uicorner_2.CornerRadius = UDim.new(0, 5)
-    uicorner_2.Parent = text_button
+    local uiStroke = Instance.new("UIStroke")
+    uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    uiStroke.Color = config.borderColor
+    uiStroke.Thickness = 1.5
+    uiStroke.Transparency = 1 -- Bắt đầu mờ
+    uiStroke.Parent = notifFrame
 
-    local image_button = Instance.new("ImageButton")
-    image_button.Image = "rbxassetid://3926305904"
-    image_button.ImageColor3 = Color3.new(0.784314, 0.784314, 0.784314)
-    image_button.ImageRectOffset = Vector2.new(924, 724)
-    image_button.ImageRectSize = Vector2.new(36, 36)
-    image_button.AnchorPoint = Vector2.new(0.5, 0.5)
-    image_button.BackgroundTransparency = 1
-    image_button.LayoutOrder = 3
-    image_button.Position = UDim2.new(0.5, 0, 0.5, 0)
-    image_button.Size = UDim2.new(0, 18, 0, 18)
-    image_button.Visible = true
-    image_button.ZIndex = 2
-    image_button.Parent = text_button
+    local uiShadow = Instance.new("UIShadow")
+    uiShadow.Color = config.shadowColor
+    uiShadow.Transparency = config.shadowTransparency
+    uiShadow.Offset = config.shadowOffset
+    uiShadow.Parent = notifFrame
 
-    --Animations
-    TS:Create(frame_3, TweenInfo.new(0.2, Enum.EasingStyle.Quint), { Position = UDim2.new(0.5, 0, 1, 0) }):Play()
-    TS:Create(frame_2, TweenInfo.new(0.2, Enum.EasingStyle.Quint), { Size = UDim2.new(0, 100, 0, 35) }):Play()
+    -- Nhãn chữ
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Font = config.font
+    textLabel.Text = text
+    textLabel.TextColor3 = textColor
+    textLabel.TextSize = config.textSize
+    textLabel.TextTransparency = 1 -- Bắt đầu mờ
+    textLabel.AutomaticSize = Enum.AutomaticSize.X
+    textLabel.BackgroundTransparency = 1
+    textLabel.Size = UDim2.new(0, 0, 0, 24)
+    textLabel.Parent = notifFrame
 
-    -- Close Button
-    local function close_notif()
-        TS:Create(image_button, TweenInfo.new(0.15, Enum.EasingStyle.Quint), { ImageTransparency = 1 }):Play()
-        TS:Create(text_button, TweenInfo.new(0.15, Enum.EasingStyle.Quint), { BackgroundTransparency = 1 }):Play()
-        TS:Create(text_label, TweenInfo.new(0.15, Enum.EasingStyle.Quint), { TextTransparency = 1 }):Play()
-        task.wait(.17)
-        TS:Create(frame_3, TweenInfo.new(0.25, Enum.EasingStyle.Quint), { BackgroundTransparency = 1 }):Play()
-        TS:Create(uistroke, TweenInfo.new(0.24, Enum.EasingStyle.Quint), { Transparency = 1 }):Play()
-        task.wait(.05)
-        TS:Create(frame_2, TweenInfo.new(0.2, Enum.EasingStyle.Quint), { Size = UDim2.new(0, 100, 0, 0) }):Play()
-        task.wait(.2)
-        frame_2:Destroy()
+    local textPadding = Instance.new("UIPadding")
+    textPadding.PaddingLeft = UDim.new(0, 8)
+    textPadding.PaddingRight = UDim.new(0, 32)
+    textPadding.Parent = textLabel
+
+    -- Nút đóng
+    local closeButton = Instance.new("TextButton")
+    closeButton.Font = Enum.Font.SourceSans
+    closeButton.Text = ""
+    closeButton.BackgroundColor3 = config.borderColor
+    closeButton.BackgroundTransparency = 1
+    closeButton.AnchorPoint = Vector2.new(1, 0.5)
+    closeButton.Position = UDim2.new(1, -4, 0.5, 0)
+    closeButton.Size = UDim2.new(0, 24, 0, 24)
+    closeButton.Parent = notifFrame
+
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 5)
+    closeCorner.Parent = closeButton
+
+    local closeImage = Instance.new("ImageButton")
+    closeImage.Image = "rbxassetid://3926305904"
+    closeImage.ImageColor3 = textColor
+    closeImage.ImageRectOffset = Vector2.new(924, 724)
+    closeImage.ImageRectSize = Vector2.new(36, 36)
+    closeImage.AnchorPoint = Vector2.new(0.5, 0.5)
+    closeImage.BackgroundTransparency = 1
+    closeImage.Position = UDim2.new(0.5, 0, 0.5, 0)
+    closeImage.Size = UDim2.new(0, 18, 0, 18)
+    closeImage.ZIndex = 2
+    closeImage.ImageTransparency = 1 -- Bắt đầu mờ
+    closeImage.Parent = closeButton
+
+    -- Animation vào
+    local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
+    TweenService:Create(notifFrame, tweenInfo, {
+        BackgroundTransparency = 0.15,
+        Position = UDim2.new(1, 0, 1, 0),
+        Size = UDim2.new(0, 0, 0, 32) -- Giữ chiều cao, scale nhẹ
+    }):Play()
+    TweenService:Create(uiStroke, tweenInfo, { Transparency = 0 }):Play()
+    TweenService:Create(textLabel, tweenInfo, { TextTransparency = 0 }):Play()
+    TweenService:Create(closeImage, tweenInfo, { ImageTransparency = 0 }):Play()
+    TweenService:Create(containerFrame, tweenInfo, { Size = UDim2.new(0, 100, 0, 40) }):Play()
+
+    -- Hàm đóng thông báo
+    local function closeNotif()
+        local closeTweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Exponential, Enum.EasingDirection.In)
+        TweenService:Create(notifFrame, closeTweenInfo, {
+            BackgroundTransparency = 1,
+            Position = UDim2.new(1, 100, 1, 0) -- Trượt ra phải
+        }):Play()
+        TweenService:Create(uiStroke, closeTweenInfo, { Transparency = 1 }):Play()
+        TweenService:Create(uiShadow, closeTweenInfo, { Transparency = 1 }):Play()
+        TweenService:Create(textLabel, closeTweenInfo, { TextTransparency = 1 }):Play()
+        TweenService:Create(closeImage, closeTweenInfo, { ImageTransparency = 1 }):Play()
+        task.wait(0.3)
+        TweenService:Create(containerFrame, closeTweenInfo, { Size = UDim2.new(0, 0, 0, 0) }):Play()
+        task.wait(0.3)
+        containerFrame:Destroy()
     end
-    text_button.MouseEnter:Connect(function()
-        TS:Create(text_button, TweenInfo.new(0.25, Enum.EasingStyle.Quint), { BackgroundTransparency = 0.8 }):Play()
-        TS:Create(image_button, TweenInfo.new(0.3, Enum.EasingStyle.Quint),
-            { ImageColor3 = Color3.new(0.890196, 0.054902, 0.054902) }):Play()
+
+    -- Tương tác nút đóng
+    closeButton.MouseEnter:Connect(function()
+        TweenService:Create(closeButton, tweenInfo, { BackgroundTransparency = 0.7 }):Play()
+        TweenService:Create(closeImage, tweenInfo, { ImageColor3 = Color3.fromRGB(255, 50, 50) }):Play()
     end)
 
-    text_button.MouseLeave:Connect(function()
-        TS:Create(text_button, TweenInfo.new(0.25, Enum.EasingStyle.Quint), { BackgroundTransparency = 1 }):Play()
-        TS:Create(image_button, TweenInfo.new(0.3, Enum.EasingStyle.Quint),
-            { ImageColor3 = Color3.new(0.784314, 0.784314, 0.784314) }):Play()
+    closeButton.MouseLeave:Connect(function()
+        TweenService:Create(closeButton, tweenInfo, { BackgroundTransparency = 1 }):Play()
+        TweenService:Create(closeImage, tweenInfo, { ImageColor3 = textColor }):Play()
     end)
 
-    text_button.MouseButton1Click:Connect(function()
-        TS:Create(image_button, TweenInfo.new(0.15, Enum.EasingStyle.Quint), { ImageTransparency = 1 }):Play()
-        TS:Create(text_button, TweenInfo.new(0.15, Enum.EasingStyle.Quint), { BackgroundTransparency = 1 }):Play()
-        TS:Create(text_label, TweenInfo.new(0.15, Enum.EasingStyle.Quint), { TextTransparency = 1 }):Play()
-        task.wait(.17)
-        TS:Create(frame_3, TweenInfo.new(0.25, Enum.EasingStyle.Quint), { BackgroundTransparency = 1 }):Play()
-        TS:Create(uistroke, TweenInfo.new(0.24, Enum.EasingStyle.Quint), { Transparency = 1 }):Play()
-        task.wait(.05)
-        TS:Create(frame_2, TweenInfo.new(0.2, Enum.EasingStyle.Quint), { Size = UDim2.new(0, 100, 0, 0) }):Play()
-        task.wait(.2)
-        frame_2:Destroy()
-    end)
-    image_button.MouseButton1Click:Connect(close_notif)
-    task.delay(tonumber(timee) and timee or 10, close_notif)
+    closeButton.MouseButton1Click:Connect(closeNotif)
+    closeImage.MouseButton1Click:Connect(closeNotif)
+
+    -- Tự động đóng sau thời gian
+    task.delay(time, closeNotif)
 end
 
 return Notif
