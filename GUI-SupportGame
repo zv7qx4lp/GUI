@@ -54,7 +54,7 @@ local config = {
     cornerRadius = 8, -- Bo góc mềm mại
     defaultDuration = 5, -- Thời gian mặc định (giây)
     shadowColor = Color3.fromRGB(0, 0, 0), -- Màu bóng
-    shadowTransparency = 0.4, -- Bóng rõ
+    shadowTransparency = 0.4, -- Độ trong suốt bóng
     shadowOffset = Vector2.new(2, 2) -- Độ lệch bóng
 }
 
@@ -73,7 +73,7 @@ function Notif.New(params)
     containerFrame.Size = UDim2.new(0, 0, 0, 0)
     containerFrame.Parent = frame
 
-    -- Khung bóng đổ (mô phỏng UIShadow)
+    -- Khung bóng đổ (mô phỏng hiệu ứng bóng)
     local shadowFrame = Instance.new("Frame")
     shadowFrame.BackgroundColor3 = config.shadowColor
     shadowFrame.BackgroundTransparency = config.shadowTransparency
