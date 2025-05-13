@@ -30,17 +30,17 @@ HideUI(screenGui)
 
 -- Tạo khung chính chứa thông báo
 local frame = Instance.new("Frame")
-frame.AnchorPoint = Vector2.new(1, 0.95)
+frame.AnchorPoint = Vector2.new(0.5, 0)
 frame.BackgroundTransparency = 1
-frame.Position = UDim2.new(0.98, -10, 0.95, 0) -- Góc dưới bên phải
+frame.Position = UDim2.new(0.5, 0, 0.05, 0) -- Giữa phía trên
 frame.Size = UDim2.new(0.3, 0, 0.3, 0)
 frame.Parent = screenGui
 
 -- UIListLayout để xếp thông báo
 local uiListLayout = Instance.new("UIListLayout")
-uiListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+uiListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-uiListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+uiListLayout.VerticalAlignment = Enum.VerticalAlignment.Top
 uiListLayout.Padding = UDim.new(0, 8)
 uiListLayout.Parent = frame
 
@@ -50,11 +50,11 @@ local config = {
     borderColor = Color3.fromRGB(15, 15, 15), -- Viền tối
     textColor = Color3.fromRGB(220, 220, 220), -- Chữ sáng
     font = Enum.Font.GothamBlack, -- Font hiện đại
-    textSize = 16, -- Kích thước chữ lớn hơn
+    textSize = 16, -- Kích thước chữ
     cornerRadius = 8, -- Bo góc mềm mại
     defaultDuration = 5, -- Thời gian mặc định (giây)
     shadowColor = Color3.fromRGB(0, 0, 0), -- Màu bóng
-    shadowTransparency = 0.4, -- Bóng rõ hơn
+    shadowTransparency = 0.4, -- Bóng rõ
     shadowOffset = Vector2.new(2, 2) -- Độ lệch bóng
 }
 
@@ -73,14 +73,28 @@ function Notif.New(params)
     containerFrame.Size = UDim2.new(0, 0, 0, 0)
     containerFrame.Parent = frame
 
+    -- Khung bóng đổ (mô phỏng UIShadow)
+    local shadowFrame = Instance.new("Frame")
+    shadowFrame.BackgroundColor3 = config.shadowColor
+    shadowFrame.BackgroundTransparency = config.shadowTransparency
+    shadowFrame.Size = UDim2.new(1, 4, 1, 4) -- Lớn hơn một chút để tạo bóng
+    shadowFrame.Position = UDim2.new(0, config.shadowOffset.X, 0, config.shadowOffset.Y) -- Lệch để tạo bóng
+    shadowFrame.ZIndex = 0 -- Đặt sau khung chính
+    shadowFrame.Parent = containerFrame
+
+    local shadowCorner = Instance.new("UICorner")
+    shadowCorner.CornerRadius = UDim.new(0, config.cornerRadius)
+    shadowCorner.Parent = shadowFrame
+
     -- Khung chính thông báo
     local notifFrame = Instance.new("Frame")
-    notifFrame.AnchorPoint = Vector2.new(1, 1)
+    notifFrame.AnchorPoint = Vector2.new(0.5, 0)
     notifFrame.AutomaticSize = Enum.AutomaticSize.X
     notifFrame.BackgroundColor3 = backgroundColor
     notifFrame.BackgroundTransparency = 1 -- Bắt đầu mờ
-    notifFrame.Position = UDim2.new(1, 100, 1, 0) -- Bắt đầu lệch phải
+    notifFrame.Position = UDim2.new(0.5, 0, 0, -60) -- Bắt đầu trên màn hình
     notifFrame.Size = UDim2.new(0, 0, 0, 32)
+    notifFrame.ZIndex = 1 -- Đặt trên khung bóng
     notifFrame.Parent = containerFrame
 
     -- Giao diện
@@ -101,12 +115,6 @@ function Notif.New(params)
     uiStroke.Thickness = 1.5
     uiStroke.Transparency = 1 -- Bắt đầu mờ
     uiStroke.Parent = notifFrame
-
-    local uiShadow = Instance.new("UIShadow")
-    uiShadow.Color = config.shadowColor
-    uiShadow.Transparency = config.shadowTransparency
-    uiShadow.Offset = config.shadowOffset
-    uiShadow.Parent = notifFrame
 
     -- Nhãn chữ
     local textLabel = Instance.new("TextLabel")
@@ -155,10 +163,11 @@ function Notif.New(params)
 
     -- Animation vào
     local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
+    TweenService:Create(shadowFrame, tweenInfo, { BackgroundTransparency = config.shadowTransparency }):Play()
     TweenService:Create(notifFrame, tweenInfo, {
         BackgroundTransparency = 0.15,
-        Position = UDim2.new(1, 0, 1, 0),
-        Size = UDim2.new(0, 0, 0, 32) -- Giữ chiều cao, scale nhẹ
+        Position = UDim2.new(0.5, 0, 0, 0), -- Trượt xuống
+        Size = UDim2.new(0, 0, 0, 32) -- Giữ chiều cao
     }):Play()
     TweenService:Create(uiStroke, tweenInfo, { Transparency = 0 }):Play()
     TweenService:Create(textLabel, tweenInfo, { TextTransparency = 0 }):Play()
@@ -168,12 +177,12 @@ function Notif.New(params)
     -- Hàm đóng thông báo
     local function closeNotif()
         local closeTweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Exponential, Enum.EasingDirection.In)
+        TweenService:Create(shadowFrame, closeTweenInfo, { BackgroundTransparency = 1 }):Play()
         TweenService:Create(notifFrame, closeTweenInfo, {
             BackgroundTransparency = 1,
-            Position = UDim2.new(1, 100, 1, 0) -- Trượt ra phải
+            Position = UDim2.new(0.5, 0, 0, -60) -- Trượt lên
         }):Play()
         TweenService:Create(uiStroke, closeTweenInfo, { Transparency = 1 }):Play()
-        TweenService:Create(uiShadow, closeTweenInfo, { Transparency = 1 }):Play()
         TweenService:Create(textLabel, closeTweenInfo, { TextTransparency = 1 }):Play()
         TweenService:Create(closeImage, closeTweenInfo, { ImageTransparency = 1 }):Play()
         task.wait(0.3)
