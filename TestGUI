@@ -1,0 +1,167 @@
+local Notif = {}
+
+-- Services
+local CoreGUI = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+
+-- Hide UI Function (Protect GUI from exploits)
+local function HideUI(gui)
+    local HIDEUI = get_hidden_gui or gethui
+    if syn and typeof(syn) == "table" and RenderWindow then
+        syn.protect_gui = gethui
+    end
+    if HIDEUI then
+        gui.Parent = HIDEUI()
+    elseif (not is_sirhurt_closure) and (syn and syn.protect_gui) then
+        syn.protect_gui(gui)
+        gui.Parent = CoreGUI
+    elseif CoreGUI:FindFirstChild("RobloxGui") then
+        gui.Parent = CoreGUI.RobloxGui
+    else
+        gui.Parent = CoreGUI
+    end
+end
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+HideUI(screenGui)
+
+-- Create Main Frame
+local frame = Instance.new("Frame")
+frame.AnchorPoint = Vector2.new(0.5, 0.95)
+frame.BackgroundTransparency = 1
+frame.Position = UDim2.new(0.5, 0, 0.95, 0)
+frame.Size = UDim2.new(0, 100, 0, 100)
+frame.Parent = screenGui
+
+-- Create UIListLayout
+local uiListLayout = Instance.new("UIListLayout")
+uiListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+uiListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+uiListLayout.Parent = frame
+
+-- Notification Creation Function
+function Notif.New(text, duration)
+    -- Create Notification Container
+    local containerFrame = Instance.new("Frame")
+    containerFrame.BackgroundTransparency = 1
+    containerFrame.Size = UDim2.new(0, 100, 0, 0)
+    containerFrame.Parent = frame
+
+    -- Create Main Notification Frame
+    local notificationFrame = Instance.new("Frame")
+    notificationFrame.AnchorPoint = Vector2.new(0.5, 1)
+    notificationFrame.AutomaticSize = Enum.AutomaticSize.X
+    notificationFrame.BackgroundColor3 = Color3.fromRGB(36, 36, 36) -- Slightly darker for modern look
+    notificationFrame.BackgroundTransparency = 0.2
+    notificationFrame.Position = UDim2.new(0.5, 0, 1, 60)
+    notificationFrame.Size = UDim2.new(0, 0, 0, 30)
+    notificationFrame.Parent = containerFrame
+
+    -- Add UICorner
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(0, 6)
+    uiCorner.Parent = notificationFrame
+
+    -- Add UIPadding
+    local uiPadding = Instance.new("UIPadding")
+    uiPadding.PaddingBottom = UDim.new(0, 3)
+    uiPadding.PaddingLeft = UDim.new(0, 3)
+    uiPadding.PaddingRight = UDim.new(0, 3)
+    uiPadding.PaddingTop = UDim.new(0, 3)
+    uiPadding.Parent = notificationFrame
+
+    -- Add UIStroke
+    local uiStroke = Instance.new("UIStroke")
+    uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    uiStroke.Color = Color3.fromRGB(20, 20, 20)
+    uiStroke.Transparency = 0.3 -- Subtle border
+    uiStroke.Parent = notificationFrame
+
+    -- Create TextLabel
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Font = Enum.Font.GothamMedium -- Slightly bolder font
+    textLabel.Text = text
+    textLabel.TextColor3 = Color3.fromRGB(220, 220, 220) -- Softer white for readability
+    textLabel.TextSize = 14
+    textLabel.AutomaticSize = Enum.AutomaticSize.X
+    textLabel.BackgroundTransparency = 1
+    textLabel.Size = UDim2.new(0, 0, 0, 24)
+    textLabel.Parent = notificationFrame
+
+    -- Add TextLabel Padding
+    local textPadding = Instance.new("UIPadding")
+    textPadding.PaddingLeft = UDim.new(0, 8) -- More padding for better spacing
+    textPadding.PaddingRight = UDim.new(0, 30)
+    textPadding.Parent = textLabel
+
+    -- Create Close Button
+    local closeButton = Instance.new("TextButton")
+    closeButton.Font = Enum.Font.SourceSans
+    closeButton.Text = ""
+    closeButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50) -- Subtle button background
+    closeButton.BackgroundTransparency = 1
+    closeButton.AnchorPoint = Vector2.new(1, 0.5)
+    closeButton.Position = UDim2.new(1, 0, 0.5, 0)
+    closeButton.Size = UDim2.new(0, 24, 0, 24)
+    closeButton.Parent = notificationFrame
+
+    -- Add UICorner to Close Button
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 5)
+    buttonCorner.Parent = closeButton
+
+    -- Create Close Icon
+    local closeIcon = Instance.new("ImageButton")
+    closeIcon.Image = "rbxassetid://3926305904"
+    closeIcon.ImageColor3 = Color3.fromRGB(200, 200, 200)
+    closeIcon.ImageRectOffset = Vector2.new(924, 724)
+    closeIcon.ImageRectSize = Vector2.new(36, 36)
+    closeIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+    closeIcon.BackgroundTransparency = 1
+    closeIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+    closeIcon.Size = UDim2.new(0, 18, 0, 18)
+    closeIcon.ZIndex = 2
+    closeIcon.Parent = closeButton
+
+    -- Animation Tweens
+    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.Out) -- Smoother animation
+    TweenService:Create(notificationFrame, tweenInfo, { Position = UDim2.new(0.5, 0, 1, 0) }):Play()
+    TweenService:Create(containerFrame, tweenInfo, { Size = UDim2.new(0, 100, 0, 35) }):Play()
+
+    -- Close Notification Function
+    local function closeNotification()
+        local fadeTweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+        TweenService:Create(closeIcon, fadeTweenInfo, { ImageTransparency = 1 }):Play()
+        TweenService:Create(closeButton, fadeTweenInfo, { BackgroundTransparency = 1 }):Play()
+        TweenService:Create(textLabel, fadeTweenInfo, { TextTransparency = 1 }):Play()
+        task.wait(0.2)
+        TweenService:Create(notificationFrame, fadeTweenInfo, { BackgroundTransparency = 1 }):Play()
+        TweenService:Create(uiStroke, fadeTweenInfo, { Transparency = 1 }):Play()
+        task.wait(0.05)
+        TweenService:Create(containerFrame, fadeTweenInfo, { Size = UDim2.new(0, 100, 0, 0) }):Play()
+        task.wait(0.2)
+        containerFrame:Destroy()
+    end
+
+    -- Close Button Hover Effects
+    closeButton.MouseEnter:Connect(function()
+        TweenService:Create(closeButton, tweenInfo, { BackgroundTransparency = 0.7 }):Play()
+        TweenService:Create(closeIcon, tweenInfo, { ImageColor3 = Color3.fromRGB(255, 50, 50) }):Play()
+    end)
+
+    closeButton.MouseLeave:Connect(function()
+        TweenService:Create(closeButton, tweenInfo, { BackgroundTransparency = 1 }):Play()
+        TweenService:Create(closeIcon, tweenInfo, { ImageColor3 = Color3.fromRGB(200, 200, 200) }):Play()
+    end)
+
+    -- Close Button Click Events
+    closeButton.MouseButton1Click:Connect(closeNotification)
+    closeIcon.MouseButton1Click:Connect(closeNotification)
+
+    -- Auto-Close After Duration
+    task.delay(tonumber(duration) or 10, closeNotification)
+end
+
+return Notif
