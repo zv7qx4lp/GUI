@@ -1,4 +1,8 @@
-local Notif = {}
+-- Đợi game và người chơi tải xong
+repeat wait() until game:IsLoaded() and game.Players.LocalPlayer
+
+-- Tạo module thông báo
+local Notify = {}
 
 -- Dịch vụ
 local CoreGui = game:GetService("CoreGui")
@@ -33,7 +37,7 @@ local frame = Instance.new("Frame")
 frame.AnchorPoint = Vector2.new(0.5, 0)
 frame.BackgroundTransparency = 1
 frame.Position = UDim2.new(0.5, 0, 0.05, 0) -- Giữa phía trên
-frame.Size = UDim2.new(0.3, 0, 0.3, 0)
+frame.Size = UDim2.new(0.4, 0, 0.2, 0)
 frame.Parent = screenGui
 
 -- UIListLayout để xếp thông báo
@@ -41,23 +45,22 @@ local uiListLayout = Instance.new("UIListLayout")
 uiListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 uiListLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-uiListLayout.Padding = UDim.new(0, 8)
+uiListLayout.Padding = UDim.new(0, 10)
 uiListLayout.Parent = frame
 
 -- Cấu hình mặc định
 local config = {
-    backgroundColor = Color3.fromRGB(30, 30, 30), -- Màu nền tối
-    borderColor = Color3.fromRGB(15, 15, 15), -- Viền tối
-    textColor = Color3.fromRGB(220, 220, 220), -- Chữ sáng
-    font = Enum.Font.GothamBlack, -- Font hiện đại
-    textSize = 16, -- Kích thước chữ
-    cornerRadius = 8, -- Bo góc mềm mại
-    defaultDuration = 5 -- Thời gian mặc định (giây)
+    backgroundColor = Color3.fromRGB(25, 25, 25),
+    borderColor = Color3.fromRGB(15, 15, 15),
+    textColor = Color3.fromRGB(200, 200, 200),
+    font = Enum.Font.GothamBold,
+    textSize = 16,
+    cornerRadius = 10,
+    defaultDuration = 5
 }
 
 -- Hàm tạo thông báo mới
-function Notif.New(params)
-    -- Kiểm tra tham số
+function Notify.New(params)
     params = type(params) == "table" and params or {}
     local text = tostring(params.text or "Thông báo")
     local time = tonumber(params.time) or config.defaultDuration
@@ -75,28 +78,27 @@ function Notif.New(params)
     notifFrame.AnchorPoint = Vector2.new(0.5, 0)
     notifFrame.AutomaticSize = Enum.AutomaticSize.X
     notifFrame.BackgroundColor3 = backgroundColor
-    notifFrame.BackgroundTransparency = 1 -- Bắt đầu mờ
-    notifFrame.Position = UDim2.new(0.5, 0, 0, -60) -- Bắt đầu trên màn hình
-    notifFrame.Size = UDim2.new(0, 0, 0, 32)
+    notifFrame.BackgroundTransparency = 1
+    notifFrame.Position = UDim2.new(0.5, 0, 0, -60)
+    notifFrame.Size = UDim2.new(0, 0, 0, 40)
     notifFrame.Parent = containerFrame
 
-    -- Giao diện
     local uiCorner = Instance.new("UICorner")
     uiCorner.CornerRadius = UDim.new(0, config.cornerRadius)
     uiCorner.Parent = notifFrame
 
     local uiPadding = Instance.new("UIPadding")
-    uiPadding.PaddingBottom = UDim.new(0, 4)
-    uiPadding.PaddingLeft = UDim.new(0, 10)
-    uiPadding.PaddingRight = UDim.new(0, 10)
-    uiPadding.PaddingTop = UDim.new(0, 4)
+    uiPadding.PaddingBottom = UDim.new(0, 8)
+    uiPadding.PaddingLeft = UDim.new(0, 12)
+    uiPadding.PaddingRight = UDim.new(0, 12)
+    uiPadding.PaddingTop = UDim.new(0, 8)
     uiPadding.Parent = notifFrame
 
     local uiStroke = Instance.new("UIStroke")
     uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     uiStroke.Color = config.borderColor
     uiStroke.Thickness = 1.5
-    uiStroke.Transparency = 1 -- Bắt đầu mờ
+    uiStroke.Transparency = 1
     uiStroke.Parent = notifFrame
 
     -- Nhãn chữ
@@ -105,25 +107,18 @@ function Notif.New(params)
     textLabel.Text = text
     textLabel.TextColor3 = textColor
     textLabel.TextSize = config.textSize
-    textLabel.TextTransparency = 1 -- Bắt đầu mờ
-    textLabel.AutomaticSize = Enum.AutomaticSize.X
+    textLabel.TextTransparency = 1
     textLabel.BackgroundTransparency = 1
-    textLabel.Size = UDim2.new(0, 0, 0, 24)
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
     textLabel.Parent = notifFrame
-
-    local textPadding = Instance.new("UIPadding")
-    textPadding.PaddingLeft = UDim.new(0, 8)
-    textPadding.PaddingRight = UDim.new(0, 32)
-    textPadding.Parent = textLabel
 
     -- Nút đóng
     local closeButton = Instance.new("TextButton")
-    closeButton.Font = Enum.Font.SourceSans
     closeButton.Text = ""
     closeButton.BackgroundColor3 = config.borderColor
     closeButton.BackgroundTransparency = 1
     closeButton.AnchorPoint = Vector2.new(1, 0.5)
-    closeButton.Position = UDim2.new(1, -4, 0.5, 0)
+    closeButton.Position = UDim2.new(1, -8, 0.5, 0)
     closeButton.Size = UDim2.new(0, 24, 0, 24)
     closeButton.Parent = notifFrame
 
@@ -141,27 +136,26 @@ function Notif.New(params)
     closeImage.Position = UDim2.new(0.5, 0, 0.5, 0)
     closeImage.Size = UDim2.new(0, 18, 0, 18)
     closeImage.ZIndex = 2
-    closeImage.ImageTransparency = 1 -- Bắt đầu mờ
+    closeImage.ImageTransparency = 1
     closeImage.Parent = closeButton
 
     -- Animation vào
     local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
     TweenService:Create(notifFrame, tweenInfo, {
-        BackgroundTransparency = 0.15,
-        Position = UDim2.new(0.5, 0, 0, 0), -- Trượt xuống
-        Size = UDim2.new(0, 0, 0, 32) -- Giữ chiều cao
+        BackgroundTransparency = 0.2,
+        Position = UDim2.new(0.5, 0, 0, 0)
     }):Play()
     TweenService:Create(uiStroke, tweenInfo, { Transparency = 0 }):Play()
     TweenService:Create(textLabel, tweenInfo, { TextTransparency = 0 }):Play()
     TweenService:Create(closeImage, tweenInfo, { ImageTransparency = 0 }):Play()
-    TweenService:Create(containerFrame, tweenInfo, { Size = UDim2.new(0, 100, 0, 40) }):Play()
+    TweenService:Create(containerFrame, tweenInfo, { Size = UDim2.new(0, 300, 0, 40) }):Play()
 
     -- Hàm đóng thông báo
     local function closeNotif()
         local closeTweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Exponential, Enum.EasingDirection.In)
         TweenService:Create(notifFrame, closeTweenInfo, {
             BackgroundTransparency = 1,
-            Position = UDim2.new(0.5, 0, 0, -60) -- Trượt lên
+            Position = UDim2.new(0.5, 0, 0, -60)
         }):Play()
         TweenService:Create(uiStroke, closeTweenInfo, { Transparency = 1 }):Play()
         TweenService:Create(textLabel, closeTweenInfo, { TextTransparency = 1 }):Play()
@@ -190,4 +184,5 @@ function Notif.New(params)
     task.delay(time, closeNotif)
 end
 
-return Notif
+-- Trả về module
+return Notify
