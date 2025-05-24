@@ -1,5 +1,5 @@
 -- GUIHub.lua
--- A modern Roblox GUI library with dark anime-inspired design, animations, and shadow effects
+-- A modern Roblox GUI library with a draggable small icon for Minimize, dark anime-inspired design, animations, and shadow effects
 -- Host this on your GitHub repository
 
 local UserInputService = game:GetService("UserInputService")
@@ -41,7 +41,7 @@ function GUIHub:CreateWindow(config)
     local defaultConfig = {
         Title = "AnimeHub",
         SubTitle = "By YourName",
-        IconMinimize = "",
+        IconMinimize = "rbxassetid://1234567890", -- Replace with your icon asset ID
         TabWidth = 150,
         Size = UDim2.new(0, 600, 0, 400),
         Theme = "Darker",
@@ -54,17 +54,20 @@ function GUIHub:CreateWindow(config)
     end
     config = defaultConfig
     
-    -- Create external Minimize button with anime style
-    local minimizeButton = Instance.new("TextButton")
-    minimizeButton.Size = UDim2.new(0, 60, 0, 60)
+    -- Create small draggable Minimize icon
+    local minimizeButton = Instance.new("ImageButton")
+    minimizeButton.Size = UDim2.new(0, 40, 0, 40) -- Smaller size for a sleek look
     minimizeButton.Position = UDim2.new(0, 10, 0, 10)
-    minimizeButton.Text = "☰"
     minimizeButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    minimizeButton.Image = config.IconMinimize -- Use custom icon
     minimizeButton.BorderSizePixel = 0
-    minimizeButton.TextScaled = true
     minimizeButton.Parent = screenGui
     AddShadow(minimizeButton)
+    
+    -- Circular shape for the button
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = minimizeButton
     
     -- Hover effect for minimize button
     minimizeButton.MouseEnter:Connect(function()
@@ -72,6 +75,47 @@ function GUIHub:CreateWindow(config)
     end)
     minimizeButton.MouseLeave:Connect(function()
         TweenService:Create(minimizeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}):Play()
+    end)
+    
+    -- Dragging functionality with boundary constraints
+    local dragging, dragStart, startPos
+    minimizeButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = minimizeButton.Position
+        end
+    end)
+    
+    minimizeButton.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+            local delta = input.Position - dragStart
+            local newPos = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + delta.X,
+                startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            )
+            
+            -- Get screen size
+            local screenSize = screenGui.AbsoluteSize
+            local buttonSize = minimizeButton.AbsoluteSize
+            
+            -- Boundary constraints
+            local minX = 0
+            local maxX = screenSize.X - buttonSize.X
+            local minY = 0
+            local maxY = screenSize.Y - buttonSize.Y
+            
+            local newX = math.clamp(newPos.X.Offset, minX, maxX)
+            local newY = math.clamp(newPos.Y.Offset, minY, maxY)
+            
+            minimizeButton.Position = UDim2.new(0, newX, 0, newY)
+        end
+    end)
+    
+    minimizeButton.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
     end)
     
     -- Create main frame
