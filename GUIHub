@@ -1,6 +1,6 @@
 -- GUIHub.lua
 -- A professional Roblox GUI library with Fluent-inspired anime design, animations, and draggable Minimize icon
--- Host this on your GitHub repository
+-- Enhanced for a sleek and modern look
 
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -14,7 +14,7 @@ local function CreateScreenGui()
     screenGui.Name = "AnimeHub"
     screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
     screenGui.ResetOnSpawn = false
-    screenGui.IgnoreGuiInset = true -- Ensure GUI respects safe area
+    screenGui.IgnoreGuiInset = true
     return screenGui
 end
 
@@ -24,7 +24,7 @@ local function AddShadow(element)
     shadow.Size = UDim2.new(1, 20, 1, 20)
     shadow.Position = UDim2.new(0, -10, 0, -10)
     shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxassetid://1316045217" -- Roblox shadow asset
+    shadow.Image = "rbxassetid://1316045217"
     shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
     shadow.ImageTransparency = 0.5
     shadow.ScaleType = Enum.ScaleType.Slice
@@ -44,6 +44,20 @@ local function ApplyHoverEffect(button, defaultColor, hoverColor)
     end)
 end
 
+-- Apply scale animation on click
+local function ApplyClickAnimation(element)
+    element.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            TweenService:Create(element, TweenInfo.new(0.1, Enum.EasingStyle.Quad), {Size = UDim2.new(element.Size.X.Scale, element.Size.X.Offset * 0.95, element.Size.Y.Scale, element.Size.Y.Offset * 0.95)}):Play()
+        end
+    end)
+    element.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            TweenService:Create(element, TweenInfo.new(0.1, Enum.EasingStyle.Quad), {Size = UDim2.new(element.Size.X.Scale, element.Size.X.Offset / 0.95, element.Size.Y.Scale, element.Size.Y.Offset / 0.95)}):Play()
+        end
+    end)
+end
+
 -- Main GUIHub class
 function GUIHub:CreateWindow(config)
     local window = {}
@@ -53,16 +67,15 @@ function GUIHub:CreateWindow(config)
     local defaultConfig = {
         Title = "AnimeHub",
         SubTitle = "By YourName",
-        IconMinimize = "rbxassetid://91324246097383", -- User-specified icon
+        IconMinimize = "rbxassetid://91324246097383",
         TabWidth = 150,
         Size = UDim2.new(0, 600, 0, 400),
         Theme = "Darker",
         MinimizeKey = Enum.KeyCode.LeftControl,
-        MinSize = UDim2.new(0, 300, 0, 200), -- Minimum size for resizing
-        MaxSize = UDim2.new(0, 800, 0, 600) -- Maximum size for resizing
+        MinSize = UDim2.new(0, 300, 0, 200),
+        MaxSize = UDim2.new(0, 800, 0, 600)
     }
     
-    -- Merge user config with defaults
     for key, value in pairs(config or {}) do
         defaultConfig[key] = value
     end
@@ -76,7 +89,8 @@ function GUIHub:CreateWindow(config)
             Accent = Color3.fromRGB(100, 100, 255),
             Text = Color3.fromRGB(200, 200, 255),
             Button = Color3.fromRGB(40, 40, 40),
-            ButtonHover = Color3.fromRGB(60, 60, 60)
+            ButtonHover = Color3.fromRGB(60, 60, 60),
+            Highlight = Color3.fromRGB(120, 120, 255)
         },
         Light = {
             Primary = Color3.fromRGB(240, 240, 240),
@@ -84,27 +98,40 @@ function GUIHub:CreateWindow(config)
             Accent = Color3.fromRGB(80, 80, 200),
             Text = Color3.fromRGB(20, 20, 20),
             Button = Color3.fromRGB(200, 200, 200),
-            ButtonHover = Color3.fromRGB(180, 180, 180)
+            ButtonHover = Color3.fromRGB(180, 180, 180),
+            Highlight = Color3.fromRGB(100, 100, 200)
         }
     }
     
     local currentTheme = themes[config.Theme] or themes.Darker
 
-    -- Create small draggable Minimize icon
+    -- Create main frame
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = config.Size
+    mainFrame.Position = UDim2.new(0.5, -config.Size.X.Offset / 2, 0.5, -config.Size.Y.Offset / 2)
+    mainFrame.BackgroundColor3 = currentTheme.Primary
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    mainFrame.Visible = false
+    AddShadow(mainFrame)
+    
+    local mainCorner = Instance.new("UICorner")
+    mainCorner.CornerRadius = UDim.new(0, 12)
+    mainCorner.Parent = mainFrame
+    
+    -- Create small draggable Minimize icon (square shape, positioned below main frame)
     local minimizeButton = Instance.new("ImageButton")
     minimizeButton.Size = UDim2.new(0, 40, 0, 40)
-    minimizeButton.Position = UDim2.new(0, 10, 0, 10)
+    minimizeButton.Position = UDim2.new(0.5, -(config.Size.X.Offset / 2 + 50), 0.5, (config.Size.Y.Offset / 2 + 10))
     minimizeButton.BackgroundColor3 = currentTheme.Secondary
     minimizeButton.Image = config.IconMinimize
     minimizeButton.BorderSizePixel = 0
     minimizeButton.Parent = screenGui
     AddShadow(minimizeButton)
     
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(1, 0)
-    corner.Parent = minimizeButton
-    
+    -- Square shape, no UICorner
     ApplyHoverEffect(minimizeButton, currentTheme.Secondary, currentTheme.ButtonHover)
+    ApplyClickAnimation(minimizeButton)
     
     -- Dragging functionality for minimize button
     local dragging, dragStart, startPos
@@ -138,20 +165,6 @@ function GUIHub:CreateWindow(config)
             dragging = false
         end
     end)
-    
-    -- Create main frame
-    local mainFrame = Instance.new("Frame")
-    mainFrame.Size = config.Size
-    mainFrame.Position = UDim2.new(0.5, -config.Size.X.Offset / 2, 0.5, -config.Size.Y.Offset / 2)
-    mainFrame.BackgroundColor3 = currentTheme.Primary
-    mainFrame.BorderSizePixel = 0
-    mainFrame.Parent = screenGui
-    mainFrame.Visible = false
-    AddShadow(mainFrame)
-    
-    local mainCorner = Instance.new("UICorner")
-    mainCorner.CornerRadius = UDim.new(0, 8)
-    mainCorner.Parent = mainFrame
     
     -- Window dragging
     local windowDragging, windowDragStart, windowStartPos
@@ -188,7 +201,7 @@ function GUIHub:CreateWindow(config)
     
     -- Title bar
     local titleBar = Instance.new("Frame")
-    titleBar.Size = UDim2.new(1, 0, 0, 40)
+    titleBar.Size = UDim2.new(1, 0, 0, 50)
     titleBar.BackgroundColor3 = currentTheme.Secondary
     titleBar.BorderSizePixel = 0
     titleBar.Parent = mainFrame
@@ -203,13 +216,13 @@ function GUIHub:CreateWindow(config)
     
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Size = UDim2.new(0.5, 0, 1, 0)
-    titleLabel.Position = UDim2.new(0, 10, 0, 0)
+    titleLabel.Position = UDim2.new(0, 15, 0, 0)
     titleLabel.Text = config.Title .. " | " .. config.SubTitle
     titleLabel.TextColor3 = currentTheme.Text
     titleLabel.BackgroundTransparency = 1
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.TextScaled = true
-    titleLabel.Font = Enum.Font.Anime
+    titleLabel.Font = Enum.Font.Gotham
     titleLabel.Parent = titleBar
     
     -- Window buttons
@@ -221,42 +234,48 @@ function GUIHub:CreateWindow(config)
     
     local minimizeWindowButton = Instance.new("TextButton")
     minimizeWindowButton.Size = UDim2.new(0, 30, 0, 30)
-    minimizeWindowButton.Position = UDim2.new(0, 0, 0, 5)
+    minimizeWindowButton.Position = UDim2.new(0, 0, 0, 10)
     minimizeWindowButton.Text = "−"
     minimizeWindowButton.BackgroundColor3 = currentTheme.Button
     minimizeWindowButton.TextColor3 = currentTheme.Text
     minimizeWindowButton.TextScaled = true
+    minimizeWindowButton.Font = Enum.Font.Gotham
     minimizeWindowButton.Parent = windowButtons
     AddShadow(minimizeWindowButton)
     
     local maximizeWindowButton = Instance.new("TextButton")
     maximizeWindowButton.Size = UDim2.new(0, 30, 0, 30)
-    maximizeWindowButton.Position = UDim2.new(0, 30, 0, 5)
+    maximizeWindowButton.Position = UDim2.new(0, 30, 0, 10)
     maximizeWindowButton.Text = "□"
     maximizeWindowButton.BackgroundColor3 = currentTheme.Button
     maximizeWindowButton.TextColor3 = currentTheme.Text
     maximizeWindowButton.TextScaled = true
+    maximizeWindowButton.Font = Enum.Font.Gotham
     maximizeWindowButton.Parent = windowButtons
     AddShadow(maximizeWindowButton)
     
     local closeButton = Instance.new("TextButton")
     closeButton.Size = UDim2.new(0, 30, 0, 30)
-    closeButton.Position = UDim2.new(0, 60, 0, 5)
+    closeButton.Position = UDim2.new(0, 60, 0, 10)
     closeButton.Text = "×"
     closeButton.BackgroundColor3 = currentTheme.Button
     closeButton.TextColor3 = currentTheme.Text
     closeButton.TextScaled = true
+    closeButton.Font = Enum.Font.Gotham
     closeButton.Parent = windowButtons
     AddShadow(closeButton)
     
     ApplyHoverEffect(minimizeWindowButton, currentTheme.Button, currentTheme.ButtonHover)
     ApplyHoverEffect(maximizeWindowButton, currentTheme.Button, currentTheme.ButtonHover)
     ApplyHoverEffect(closeButton, currentTheme.Button, currentTheme.ButtonHover)
+    ApplyClickAnimation(minimizeWindowButton)
+    ApplyClickAnimation(maximizeWindowButton)
+    ApplyClickAnimation(closeButton)
     
     -- Tab container
     local tabContainer = Instance.new("Frame")
-    tabContainer.Size = UDim2.new(0, config.TabWidth, 1, -40)
-    tabContainer.Position = UDim2.new(0, 0, 0, 40)
+    tabContainer.Size = UDim2.new(0, config.TabWidth, 1, -50)
+    tabContainer.Position = UDim2.new(0, 0, 0, 50)
     tabContainer.BackgroundColor3 = currentTheme.Secondary
     tabContainer.BorderSizePixel = 0
     tabContainer.Parent = mainFrame
@@ -275,16 +294,16 @@ function GUIHub:CreateWindow(config)
     
     -- Content container
     local contentContainer = Instance.new("Frame")
-    contentContainer.Size = UDim2.new(1, -config.TabWidth, 1, -40)
-    contentContainer.Position = UDim2.new(0, config.TabWidth, 0, 40)
+    contentContainer.Size = UDim2.new(1, -config.TabWidth, 1, -50)
+    contentContainer.Position = UDim2.new(0, config.TabWidth, 0, 50)
     contentContainer.BackgroundColor3 = currentTheme.Primary
     contentContainer.BorderSizePixel = 0
     contentContainer.Parent = mainFrame
     
     -- Resize handle
     local resizeHandle = Instance.new("Frame")
-    resizeHandle.Size = UDim2.new(0, 10, 0, 10)
-    resizeHandle.Position = UDim2.new(1, -10, 1, -10)
+    resizeHandle.Size = UDim2.new(0, 15, 0, 15)
+    resizeHandle.Position = UDim2.new(1, -15, 1, -15)
     resizeHandle.BackgroundColor3 = currentTheme.Accent
     resizeHandle.Parent = mainFrame
     AddShadow(resizeHandle)
@@ -311,7 +330,7 @@ function GUIHub:CreateWindow(config)
                 0, math.clamp(startSize.Y.Offset + delta.Y, config.MinSize.Y.Offset, config.MaxSize.Y.Offset)
             )
             mainFrame.Size = newSize
-            contentContainer.Size = UDim2.new(1, -config.TabWidth, 1, -40)
+            contentContainer.Size = UDim2.new(1, -config.TabWidth, 1, -50)
         end
     end)
     
@@ -341,7 +360,7 @@ function GUIHub:CreateWindow(config)
         mainFrame.Size = isMaximized and config.MaxSize or config.Size
         mainFrame.Position = isMaximized and UDim2.new(0.5, -config.MaxSize.X.Offset / 2, 0.5, -config.MaxSize.Y.Offset / 2) or
                             UDim2.new(0.5, -config.Size.X.Offset / 2, 0.5, -config.Size.Y.Offset / 2)
-        contentContainer.Size = UDim2.new(1, -config.TabWidth, 1, -40)
+        contentContainer.Size = UDim2.new(1, -config.TabWidth, 1, -50)
     end)
     
     closeButton.MouseButton1Click:Connect(function()
@@ -352,7 +371,9 @@ function GUIHub:CreateWindow(config)
         isMinimized = not isMinimized
         mainFrame.Visible = not isMinimized
         minimizeButton.Visible = isMinimized
-        TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = isMinimized and UDim2.new(0, 0, 0, 0) or config.Size}):Play()
+        if not isMinimized then
+            TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Bounce), {Size = config.Size}):Play()
+        end
     end)
     
     -- Keybind to toggle minimize
@@ -361,7 +382,9 @@ function GUIHub:CreateWindow(config)
             isMinimized = not isMinimized
             mainFrame.Visible = not isMinimized
             minimizeButton.Visible = isMinimized
-            TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = isMinimized and UDim2.new(0, 0, 0, 0) or config.Size}):Play()
+            if not isMinimized then
+                TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Bounce), {Size = config.Size}):Play()
+            end
         end
     end)
     
@@ -378,11 +401,16 @@ function GUIHub:CreateWindow(config)
         tabButton.BackgroundColor3 = currentTheme.Secondary
         tabButton.TextColor3 = currentTheme.Text
         tabButton.TextScaled = true
-        tabButton.Font = Enum.Font.Anime
+        tabButton.Font = Enum.Font.Gotham
         tabButton.Parent = tabList
         tabList.CanvasSize = UDim2.new(0, 0, 0, tabListLayout.AbsoluteContentSize.Y)
         
+        local tabCorner = Instance.new("UICorner")
+        tabCorner.CornerRadius = UDim.new(0, 8)
+        tabCorner.Parent = tabButton
+        
         ApplyHoverEffect(tabButton, currentTheme.Secondary, currentTheme.ButtonHover)
+        ApplyClickAnimation(tabButton)
         
         local tabContent = Instance.new("ScrollingFrame")
         tabContent.Size = UDim2.new(1, 0, 1, 0)
@@ -408,7 +436,7 @@ function GUIHub:CreateWindow(config)
                     btn.BackgroundColor3 = currentTheme.Secondary
                 end
             end
-            tabButton.BackgroundColor3 = currentTheme.Button
+            tabButton.BackgroundColor3 = currentTheme.Highlight
         end)
         
         local elements = {}
@@ -421,7 +449,7 @@ function GUIHub:CreateWindow(config)
             sectionLabel.TextScaled = true
             sectionLabel.TextXAlignment = Enum.TextXAlignment.Left
             sectionLabel.Position = UDim2.new(0, 10, 0, 0)
-            sectionLabel.Font = Enum.Font.Anime
+            sectionLabel.Font = Enum.Font.Gotham
             sectionLabel.Parent = tabContent
             table.insert(elements, sectionLabel)
             tabContent.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y)
@@ -440,14 +468,16 @@ function GUIHub:CreateWindow(config)
             button.BackgroundColor3 = currentTheme.Button
             button.TextColor3 = currentTheme.Text
             button.TextScaled = true
-            button.Font = Enum.Font.Anime
+            button.Font = Enum.Font.Gotham
             button.Parent = tabContent
             AddShadow(button)
-            ApplyHoverEffect(button, currentTheme.Button, currentTheme.ButtonHover)
             
             local buttonCorner = Instance.new("UICorner")
             buttonCorner.CornerRadius = UDim.new(0, 8)
             buttonCorner.Parent = button
+            
+            ApplyHoverEffect(button, currentTheme.Button, currentTheme.ButtonHover)
+            ApplyClickAnimation(button)
             
             button.MouseButton1Click:Connect(function()
                 if buttonConfig.Callback then
@@ -478,7 +508,7 @@ function GUIHub:CreateWindow(config)
             toggleLabel.BackgroundTransparency = 1
             toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
             toggleLabel.TextScaled = true
-            toggleLabel.Font = Enum.Font.Anime
+            toggleLabel.Font = Enum.Font.Gotham
             toggleLabel.Parent = toggleFrame
             
             local toggleButton = Instance.new("TextButton")
@@ -488,6 +518,7 @@ function GUIHub:CreateWindow(config)
             toggleButton.BackgroundColor3 = toggleConfig.Default and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
             toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             toggleButton.TextScaled = true
+            toggleButton.Font = Enum.Font.Gotham
             toggleButton.Parent = toggleFrame
             AddShadow(toggleButton)
             
@@ -506,6 +537,9 @@ function GUIHub:CreateWindow(config)
                     toggleConfig.Callback(toggleValue)
                 end
             end)
+            
+            ApplyHoverEffect(toggleButton, toggleValue and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0), toggleValue and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(200, 0, 0))
+            ApplyClickAnimation(toggleButton)
             
             table.insert(elements, toggleFrame)
             tabContent.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y)
@@ -530,7 +564,7 @@ function GUIHub:CreateWindow(config)
             dropdownLabel.BackgroundTransparency = 1
             dropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
             dropdownLabel.TextScaled = true
-            dropdownLabel.Font = Enum.Font.Anime
+            dropdownLabel.Font = Enum.Font.Gotham
             dropdownLabel.Parent = dropdownFrame
             
             local dropdownButton = Instance.new("TextButton")
@@ -540,7 +574,7 @@ function GUIHub:CreateWindow(config)
             dropdownButton.BackgroundColor3 = currentTheme.Button
             dropdownButton.TextColor3 = currentTheme.Text
             dropdownButton.TextScaled = true
-            dropdownButton.Font = Enum.Font.Anime
+            dropdownButton.Font = Enum.Font.Gotham
             dropdownButton.Parent = dropdownFrame
             AddShadow(dropdownButton)
             
@@ -581,9 +615,10 @@ function GUIHub:CreateWindow(config)
                     optionButton.BackgroundColor3 = currentTheme.Secondary
                     optionButton.TextColor3 = currentTheme.Text
                     optionButton.TextScaled = true
-                    optionButton.Font = Enum.Font.Anime
+                    optionButton.Font = Enum.Font.Gotham
                     optionButton.Parent = dropdownList
                     ApplyHoverEffect(optionButton, currentTheme.Secondary, currentTheme.ButtonHover)
+                    ApplyClickAnimation(optionButton)
                     
                     optionButton.MouseButton1Click:Connect(function()
                         dropdownButton.Text = option
@@ -601,13 +636,65 @@ function GUIHub:CreateWindow(config)
             
             dropdownButton.MouseButton1Click:Connect(function()
                 dropdownList.Visible = not dropdownList.Visible
-                dropdownList.Size = dropdownList.Visible and UDim2.new(0, 100, 0, #dropdownConfig.Options * 30) or UDim2.new(0, 100, 0, 0)
                 TweenService:Create(dropdownList, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
                     Size = dropdownList.Visible and UDim2.new(0, 100, 0, #dropdownConfig.Options * 30) or UDim2.new(0, 100, 0, 0)
                 }):Play()
             end)
             
+            ApplyHoverEffect(dropdownButton, currentTheme.Button, currentTheme.ButtonHover)
+            ApplyClickAnimation(dropdownButton)
+            
             table.insert(elements, dropdownFrame)
+            tabContent.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y)
+        end
+        
+        -- Add TextBox element
+        function tab:AddTextBox(textBoxConfig)
+            if not textBoxConfig or not textBoxConfig.Title then
+                warn("Invalid textbox configuration: Title required")
+                return
+            end
+            
+            local textBoxFrame = Instance.new("Frame")
+            textBoxFrame.Size = UDim2.new(1, -20, 0, 60)
+            textBoxFrame.BackgroundTransparency = 1
+            textBoxFrame.Parent = tabContent
+            
+            local textBoxLabel = Instance.new("TextLabel")
+            textBoxLabel.Size = UDim2.new(0.8, 0, 1, 0)
+            textBoxLabel.Position = UDim2.new(0, 10, 0, 0)
+            textBoxLabel.Text = textBoxConfig.Title
+            textBoxLabel.TextColor3 = currentTheme.Text
+            textBoxLabel.BackgroundTransparency = 1
+            textBoxLabel.TextXAlignment = Enum.TextXAlignment.Left
+            textBoxLabel.TextScaled = true
+            textBoxLabel.Font = Enum.Font.Gotham
+            textBoxLabel.Parent = textBoxFrame
+            
+            local textBox = Instance.new("TextBox")
+            textBox.Size = UDim2.new(0, 100, 0, 30)
+            textBox.Position = UDim2.new(1, -110, 0, 15)
+            textBox.Text = textBoxConfig.Default or ""
+            textBox.BackgroundColor3 = currentTheme.Button
+            textBox.TextColor3 = currentTheme.Text
+            textBox.TextScaled = true
+            textBox.Font = Enum.Font.Gotham
+            textBox.Parent = textBoxFrame
+            AddShadow(textBox)
+            
+            local textBoxCorner = Instance.new("UICorner")
+            textBoxCorner.CornerRadius = UDim.new(0, 8)
+            textBoxCorner.Parent = textBox
+            
+            textBox.FocusLost:Connect(function(enterPressed)
+                if enterPressed and textBoxConfig.Callback then
+                    textBoxConfig.Callback(textBox.Text)
+                end
+            end)
+            
+            ApplyHoverEffect(textBox, currentTheme.Button, currentTheme.ButtonHover)
+            
+            table.insert(elements, textBoxFrame)
             tabContent.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y)
         end
         
@@ -627,7 +714,7 @@ function GUIHub:CreateWindow(config)
             currentTab = tabs[index]
             for i, btn in pairs(tabList:GetChildren()) do
                 if btn:IsA("TextButton") then
-                    btn.BackgroundColor3 = i == index and currentTheme.Button or currentTheme.Secondary
+                    btn.BackgroundColor3 = i == index and currentTheme.Highlight or currentTheme.Secondary
                 end
             end
         else
@@ -645,7 +732,7 @@ function GUIHub:CreateWindow(config)
             minimizeButton.BackgroundColor3 = currentTheme.Secondary
             for _, btn in pairs(tabList:GetChildren()) do
                 if btn:IsA("TextButton") then
-                    btn.BackgroundColor3 = btn == currentTab and currentTheme.Button or currentTheme.Secondary
+                    btn.BackgroundColor3 = btn == currentTab and currentTheme.Highlight or currentTheme.Secondary
                     btn.TextColor3 = currentTheme.Text
                 end
             end
@@ -653,14 +740,15 @@ function GUIHub:CreateWindow(config)
                 for _, element in pairs(tab:GetChildren()) do
                     if element:IsA("TextLabel") then
                         element.TextColor3 = currentTheme.Text
-                    elseif element:IsA("TextButton") then
+                    elseif element:IsA("TextButton") or element:IsA("TextBox") then
                         element.BackgroundColor3 = currentTheme.Button
                         element.TextColor3 = currentTheme.Text
                     elseif element:IsA("Frame") then
                         for _, child in pairs(element:GetChildren()) do
                             if child:IsA("TextLabel") then
                                 child.TextColor3 = currentTheme.Text
-                            elseif child:IsA("TextButton") then
+                            elseif child:IsA("TextButton") or child:IsA("TextBox") then
+                                child.BackgroundColor3 = currentTheme.Button
                                 child.TextColor3 = currentTheme.Text
                             end
                         end
