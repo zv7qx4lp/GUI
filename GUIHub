@@ -1,1 +1,240 @@
+-- GUIHub.lua
+-- A simple Roblox GUI library for creating hubs with tabs, buttons, toggles, and animations
+-- Host this on your GitHub repository (e.g., https://github.com/YourUsername/GUIHub)
 
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+
+local GUIHub = {}
+
+-- Create a ScreenGui
+local function CreateScreenGui()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "YourNameHub"
+    screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+    screenGui.ResetOnSpawn = false
+    return screenGui
+end
+
+-- Main GUIHub class
+function GUIHub:CreateWindow(config)
+    local window = {}
+    local screenGui = CreateScreenGui()
+    
+    -- Default configuration
+    local defaultConfig = {
+        Title = "GUI Hub",
+        SubTitle = "Made by Creator",
+        IconMinimize = "",
+        TabWidth = 150,
+        Size = UDim2.new(0, 600, 0, 400),
+        Theme = "Darker",
+        MinimizeKey = Enum.KeyCode.LeftControl,
+        AnimationIn = "FadeIn",
+        AnimationOut = "FadeOut"
+    }
+    
+    -- Merge user config with defaults
+    for key, value in pairs(config) do
+        defaultConfig[key] = value
+    end
+    config = defaultConfig
+    
+    -- Create main frame
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = config.Size
+    mainFrame.Position = UDim2.new(0.5, -config.Size.X.Offset / 2, 0.5, -config.Size.Y.Offset / 2)
+    mainFrame.BackgroundColor3 = config.Theme == "Darker" and Color3.fromRGB(30, 30, 30) or Color3.fromRGB(200, 200, 200)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    
+    -- Title bar
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 30)
+    titleBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = mainFrame
+    
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(0.5, 0, 1, 0)
+    titleLabel.Position = UDim2.new(0, 10, 0, 0)
+    titleLabel.Text = config.Title .. " | " .. config.SubTitle
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = titleBar
+    
+    -- Minimize button
+    local minimizeButton = Instance.new("TextButton")
+    minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+    minimizeButton.Position = UDim2.new(1, -90, 0, 0)
+    minimizeButton.Text = "-"
+    minimizeButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    minimizeButton.Parent = titleBar
+    
+    -- Close button
+    local closeButton = Instance.new("TextButton")
+    closeButton.Size = UDim2.new(0, 30, 0, 30)
+    closeButton.Position = UDim2.new(1, -30, 0, 0)
+    closeButton.Text = "X"
+    closeButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.Parent = titleBar
+    
+    -- Tab container
+    local tabContainer = Instance.new("Frame")
+    tabContainer.Size = UDim2.new(0, config.TabWidth, 1, -30)
+    tabContainer.Position = UDim2.new(0, 0, 0, 30)
+    tabContainer.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    tabContainer.BorderSizePixel = 0
+    tabContainer.Parent = mainFrame
+    
+    -- Content container
+    local contentContainer = Instance.new("Frame")
+    contentContainer.Size = UDim2.new(1, -config.TabWidth, 1, -30)
+    contentContainer.Position = UDim2.new(0, config.TabWidth, 0, 30)
+    contentContainer.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    contentContainer.BorderSizePixel = 0
+    contentContainer.Parent = mainFrame
+    
+    -- Tab management
+    local tabs = {}
+    local currentTab = nil
+    
+    function window:AddTab(tabConfig)
+        local tab = {}
+        local tabButton = Instance.new("TextButton")
+        tabButton.Size = UDim2.new(1, 0, 0, 50)
+        tabButton.Position = UDim2.new(0, 0, 0, #tabs * 50)
+        tabButton.Text = tabConfig.Title
+        tabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        tabButton.Parent = tabContainer
+        
+        local tabContent = Instance.new("Frame")
+        tabContent.Size = UDim2.new(1, 0, 1, 0)
+        tabContent.BackgroundTransparency = 1
+        tabContent.Parent = contentContainer
+        tabContent.Visible = false
+        
+        tabButton.MouseButton1Click:Connect(function()
+            if currentTab then
+                currentTab.Visible = false
+            end
+            tabContent.Visible = true
+            currentTab = tabContent
+        end)
+        
+        local elements = {}
+        function tab:AddSection(title)
+            local sectionLabel = Instance.new("TextLabel")
+            sectionLabel.Size = UDim2.new(1, 0, 0, 30)
+            sectionLabel.Position = UDim2.new(0, 0, 0, #elements * 50)
+            sectionLabel.Text = title
+            sectionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+            sectionLabel.BackgroundTransparency = 1
+            sectionLabel.Parent = tabContent
+            table.insert(elements, sectionLabel)
+        end
+        
+        function tab:AddButton(buttonConfig)
+            local button = Instance.new("TextButton")
+            button.Size = UDim2.new(1, -20, 0, 40)
+            button.Position = UDim2.new(0, 10, 0, #elements * 50)
+            button.Text = buttonConfig.Title .. "\n" .. (buttonConfig.Description or "")
+            button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            button.TextColor3 = Color3.fromRGB(255, 255, 255)
+            button.Parent = tabContent
+            button.MouseButton1Click:Connect(buttonConfig.Callback)
+            table.insert(elements, button)
+        end
+        
+        function tab:AddToggle(toggleConfig)
+            local toggleFrame = Instance.new("Frame")
+            toggleFrame.Size = UDim2.new(1, -20, 0, 60)
+            toggleFrame.Position = UDim2.new(0, 10, 0, #elements * 50)
+            toggleFrame.BackgroundTransparency = 1
+            toggleFrame.Parent = tabContent
+            
+            local toggleLabel = Instance.new("TextLabel")
+            toggleLabel.Size = UDim2.new(0.8, 0, 1, 0)
+            toggleLabel.Text = toggleConfig.Title .. "\n" .. (toggleConfig.Description or "")
+            toggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            toggleLabel.BackgroundTransparency = 1
+            toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+            toggleLabel.Parent = toggleFrame
+            
+            local toggleButton = Instance.new("TextButton")
+            toggleButton.Size = UDim2.new(0, 60, 0, 30)
+            toggleButton.Position = UDim2.new(1, -60, 0, 15)
+            toggleButton.Text = toggleConfig.Default and "On" or "Off"
+            toggleButton.BackgroundColor3 = toggleConfig.Default and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+            toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            toggleButton.Parent = toggleFrame
+            
+            local toggleValue = toggleConfig.Default
+            toggleButton.MouseButton1Click:Connect(function()
+                toggleValue = not toggleValue
+                toggleButton.Text = toggleValue and "On" or "Off"
+                toggleConfig.Callback(toggleValue)
+            end)
+            
+            table.insert(elements, toggleFrame)
+        end
+        
+        table.insert(tabs, tabContent)
+        return tab
+    end
+    
+    function window:SelectTab(index)
+        if tabs[index] then
+            if currentTab then
+                currentTab.Visible = false
+            end
+            tabs[index].Visible = true
+            currentTab = tabs[index]
+        end
+    end
+    
+    function window:SetTheme(theme)
+        mainFrame.BackgroundColor3 = theme == "Darker" and Color3.fromRGB(30, 30, 30) or Color3.fromRGB(200, 200, 200)
+        contentContainer.BackgroundColor3 = theme == "Darker" and Color3.fromRGB(35, 35, 35) or Color3.fromRGB(220, 220, 220)
+    end
+    
+    -- Minimize functionality
+    local minimized = false
+    minimizeButton.MouseButton1Click:Connect(function()
+        minimized = not minimized
+        contentContainer.Visible = not minimized
+        tabContainer.Visible = not minimized
+        mainFrame.Size = minimized and UDim2.new(0, config.Size.X.Offset, 0, 30) or config.Size
+    end)
+    
+    -- Close functionality
+    closeButton.MouseButton1Click:Connect(function()
+        if window.OnClose then
+            window.OnClose()
+        end
+        screenGui:Destroy()
+    end)
+    
+    -- Minimize key binding
+    UserInputService.InputBegan:Connect(function(input)
+        if input.KeyCode == config.MinimizeKey then
+            minimized = not minimized
+            contentContainer.Visible = not minimized
+            tabContainer.Visible = not minimized
+            mainFrame.Size = minimized and UDim2.new(0, config.Size.X.Offset, 0, 30) or config.Size
+        end
+    end)
+    
+    -- Fade-in animation
+    mainFrame.BackgroundTransparency = 1
+    TweenService:Create(mainFrame, TweenInfo.new(0.5), {BackgroundTransparency = 0}):Play()
+    
+    return window
+end
+
+return GUIHub
