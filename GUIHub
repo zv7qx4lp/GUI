@@ -1,5 +1,5 @@
 -- GUIHub.lua
--- A modern Roblox GUI library with a draggable small icon for Minimize, dark anime-inspired design, animations, and shadow effects
+-- A professional Roblox GUI library with Fluent-inspired design, animations, and draggable Minimize icon
 -- Host this on your GitHub repository
 
 local UserInputService = game:GetService("UserInputService")
@@ -41,7 +41,7 @@ function GUIHub:CreateWindow(config)
     local defaultConfig = {
         Title = "AnimeHub",
         SubTitle = "By YourName",
-        IconMinimize = "rbxassetid://1234567890", -- Replace with your icon asset ID
+        IconMinimize = "rbxassetid://91324246097383", -- User-specified icon
         TabWidth = 150,
         Size = UDim2.new(0, 600, 0, 400),
         Theme = "Darker",
@@ -56,10 +56,10 @@ function GUIHub:CreateWindow(config)
     
     -- Create small draggable Minimize icon
     local minimizeButton = Instance.new("ImageButton")
-    minimizeButton.Size = UDim2.new(0, 40, 0, 40) -- Smaller size for a sleek look
+    minimizeButton.Size = UDim2.new(0, 40, 0, 40) -- Small size for sleek look
     minimizeButton.Position = UDim2.new(0, 10, 0, 10)
     minimizeButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    minimizeButton.Image = config.IconMinimize -- Use custom icon
+    minimizeButton.Image = config.IconMinimize -- Use specified icon
     minimizeButton.BorderSizePixel = 0
     minimizeButton.Parent = screenGui
     AddShadow(minimizeButton)
@@ -127,6 +127,11 @@ function GUIHub:CreateWindow(config)
     mainFrame.Parent = screenGui
     mainFrame.Visible = false
     AddShadow(mainFrame)
+    
+    -- Rounded corners for main frame
+    local mainCorner = Instance.new("UICorner")
+    mainCorner.CornerRadius = UDim.new(0, 8)
+    mainCorner.Parent = mainFrame
     
     -- Title bar with gradient
     local titleBar = Instance.new("Frame")
