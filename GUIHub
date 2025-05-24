@@ -1,5 +1,5 @@
 -- GUIHub.lua
--- A modern Roblox GUI library with external Minimize button and toggle functionality
+-- A modern Roblox GUI library with dark anime-inspired design, animations, and shadow effects
 -- Host this on your GitHub repository
 
 local UserInputService = game:GetService("UserInputService")
@@ -11,10 +11,25 @@ local GUIHub = {}
 -- Create a ScreenGui
 local function CreateScreenGui()
     local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "DingaHub"
+    screenGui.Name = "AnimeHub"
     screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
     screenGui.ResetOnSpawn = false
     return screenGui
+end
+
+-- Add shadow effect to a frame
+local function AddShadow(frame)
+    local shadow = Instance.new("ImageLabel")
+    shadow.Size = UDim2.new(1, 20, 1, 20)
+    shadow.Position = UDim2.new(0, -10, 0, -10)
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxassetid://1316045217" -- Roblox shadow asset
+    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.ImageTransparency = 0.5
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(10, 10, 246, 246)
+    shadow.ZIndex = frame.ZIndex - 1
+    shadow.Parent = frame
 end
 
 -- Main GUIHub class
@@ -24,12 +39,12 @@ function GUIHub:CreateWindow(config)
     
     -- Default configuration
     local defaultConfig = {
-        Title = "DingaHub",
-        SubTitle = "t.me/DingaScripts",
+        Title = "AnimeHub",
+        SubTitle = "By YourName",
         IconMinimize = "",
         TabWidth = 150,
         Size = UDim2.new(0, 600, 0, 400),
-        Theme = "Dark",
+        Theme = "Darker",
         MinimizeKey = Enum.KeyCode.LeftControl
     }
     
@@ -39,38 +54,56 @@ function GUIHub:CreateWindow(config)
     end
     config = defaultConfig
     
-    -- Create external Minimize button
+    -- Create external Minimize button with anime style
     local minimizeButton = Instance.new("TextButton")
-    minimizeButton.Size = UDim2.new(0, 50, 0, 50)
+    minimizeButton.Size = UDim2.new(0, 60, 0, 60)
     minimizeButton.Position = UDim2.new(0, 10, 0, 10)
-    minimizeButton.Text = "Minimize"
-    minimizeButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    minimizeButton.Text = "☰"
+    minimizeButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     minimizeButton.BorderSizePixel = 0
     minimizeButton.TextScaled = true
     minimizeButton.Parent = screenGui
+    AddShadow(minimizeButton)
+    
+    -- Hover effect for minimize button
+    minimizeButton.MouseEnter:Connect(function()
+        TweenService:Create(minimizeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}):Play()
+    end)
+    minimizeButton.MouseLeave:Connect(function()
+        TweenService:Create(minimizeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}):Play()
+    end)
     
     -- Create main frame
     local mainFrame = Instance.new("Frame")
     mainFrame.Size = config.Size
     mainFrame.Position = UDim2.new(0.5, -config.Size.X.Offset / 2, 0.5, -config.Size.Y.Offset / 2)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     mainFrame.BorderSizePixel = 0
     mainFrame.Parent = screenGui
-    mainFrame.Visible = false -- Initially hidden
+    mainFrame.Visible = false
+    AddShadow(mainFrame)
     
-    -- Title bar
+    -- Title bar with gradient
     local titleBar = Instance.new("Frame")
-    titleBar.Size = UDim2.new(1, 0, 0, 30)
-    titleBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    titleBar.Size = UDim2.new(1, 0, 0, 40)
+    titleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
     titleBar.BorderSizePixel = 0
     titleBar.Parent = mainFrame
+    
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 25)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 50))
+    }
+    gradient.Rotation = 45
+    gradient.Parent = titleBar
     
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Size = UDim2.new(0.5, 0, 1, 0)
     titleLabel.Position = UDim2.new(0, 10, 0, 0)
     titleLabel.Text = config.Title .. " | " .. config.SubTitle
-    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
     titleLabel.BackgroundTransparency = 1
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.TextScaled = true
@@ -85,33 +118,33 @@ function GUIHub:CreateWindow(config)
     
     local minimizeWindowButton = Instance.new("TextButton")
     minimizeWindowButton.Size = UDim2.new(0, 30, 0, 30)
-    minimizeWindowButton.Position = UDim2.new(0, 0, 0, 0)
+    minimizeWindowButton.Position = UDim2.new(0, 0, 0, 5)
     minimizeWindowButton.Text = "-"
-    minimizeWindowButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    minimizeWindowButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     minimizeWindowButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     minimizeWindowButton.Parent = windowButtons
     
     local maximizeWindowButton = Instance.new("TextButton")
     maximizeWindowButton.Size = UDim2.new(0, 30, 0, 30)
-    maximizeWindowButton.Position = UDim2.new(0, 30, 0, 0)
+    maximizeWindowButton.Position = UDim2.new(0, 30, 0, 5)
     maximizeWindowButton.Text = "□"
-    maximizeWindowButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    maximizeWindowButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     maximizeWindowButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     maximizeWindowButton.Parent = windowButtons
     
     local closeButton = Instance.new("TextButton")
     closeButton.Size = UDim2.new(0, 30, 0, 30)
-    closeButton.Position = UDim2.new(0, 60, 0, 0)
+    closeButton.Position = UDim2.new(0, 60, 0, 5)
     closeButton.Text = "X"
-    closeButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    closeButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     closeButton.Parent = windowButtons
     
     -- Tab container
     local tabContainer = Instance.new("Frame")
-    tabContainer.Size = UDim2.new(0, config.TabWidth, 1, -30)
-    tabContainer.Position = UDim2.new(0, 0, 0, 30)
-    tabContainer.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    tabContainer.Size = UDim2.new(0, config.TabWidth, 1, -40)
+    tabContainer.Position = UDim2.new(0, 0, 0, 40)
+    tabContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     tabContainer.BorderSizePixel = 0
     tabContainer.Parent = mainFrame
     
@@ -119,6 +152,7 @@ function GUIHub:CreateWindow(config)
     tabList.Size = UDim2.new(1, 0, 1, 0)
     tabList.BackgroundTransparency = 1
     tabList.ScrollBarThickness = 5
+    tabList.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 255)
     tabList.Parent = tabContainer
     
     local tabListLayout = Instance.new("UIListLayout")
@@ -127,9 +161,9 @@ function GUIHub:CreateWindow(config)
     
     -- Content container
     local contentContainer = Instance.new("Frame")
-    contentContainer.Size = UDim2.new(1, -config.TabWidth, 1, -30)
-    contentContainer.Position = UDim2.new(0, config.TabWidth, 0, 30)
-    contentContainer.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    contentContainer.Size = UDim2.new(1, -config.TabWidth, 1, -40)
+    contentContainer.Position = UDim2.new(0, config.TabWidth, 0, 40)
+    contentContainer.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
     contentContainer.BorderSizePixel = 0
     contentContainer.Parent = mainFrame
     
@@ -142,16 +176,29 @@ function GUIHub:CreateWindow(config)
         local tabButton = Instance.new("TextButton")
         tabButton.Size = UDim2.new(1, 0, 0, 50)
         tabButton.Text = tabConfig.Title
-        tabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        tabButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        tabButton.TextColor3 = Color3.fromRGB(200, 200, 255)
         tabButton.TextScaled = true
         tabButton.Parent = tabList
         tabList.CanvasSize = UDim2.new(0, 0, 0, tabListLayout.AbsoluteContentSize.Y)
+        
+        -- Hover effect for tab button
+        tabButton.MouseEnter:Connect(function()
+            if tabContent ~= currentTab then
+                TweenService:Create(tabButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}):Play()
+            end
+        end)
+        tabButton.MouseLeave:Connect(function()
+            if tabContent ~= currentTab then
+                TweenService:Create(tabButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}):Play()
+            end
+        end)
         
         local tabContent = Instance.new("ScrollingFrame")
         tabContent.Size = UDim2.new(1, 0, 1, 0)
         tabContent.BackgroundTransparency = 1
         tabContent.ScrollBarThickness = 5
+        tabContent.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 255)
         tabContent.Parent = contentContainer
         tabContent.Visible = false
         
@@ -168,7 +215,7 @@ function GUIHub:CreateWindow(config)
             currentTab = tabContent
             for _, btn in pairs(tabList:GetChildren()) do
                 if btn:IsA("TextButton") then
-                    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                    btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
                 end
             end
             tabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
@@ -192,11 +239,23 @@ function GUIHub:CreateWindow(config)
             button.Size = UDim2.new(1, -20, 0, 40)
             button.Position = UDim2.new(0, 10, 0, 0)
             button.Text = buttonConfig.Title
-            button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             button.TextColor3 = Color3.fromRGB(255, 255, 255)
             button.TextScaled = true
             button.Parent = tabContent
-            button.MouseButton1Click:Connect(buttonConfig.Callback)
+            button.MouseButton1Click:Connect(function()
+                if buttonConfig.Callback then
+                    buttonConfig.Callback()
+                end
+            end)
+            AddShadow(button)
+            -- Hover effect
+            button.MouseEnter:Connect(function()
+                TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+            end)
+            button.MouseLeave:Connect(function()
+                TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}):Play()
+            end)
             table.insert(elements, button)
             tabContent.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y)
         end
@@ -224,13 +283,16 @@ function GUIHub:CreateWindow(config)
             toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             toggleButton.TextScaled = true
             toggleButton.Parent = toggleFrame
+            AddShadow(toggleButton)
             
             local toggleValue = toggleConfig.Default
             toggleButton.MouseButton1Click:Connect(function()
                 toggleValue = not toggleValue
                 toggleButton.Text = toggleValue and "On" or "Off"
-                toggleButton.BackgroundColor3 = toggleValue and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-                toggleConfig.Callback(toggleValue)
+                TweenService:Create(toggleButton, TweenInfo.new(0.3), {BackgroundColor3 = toggleValue and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)}):Play()
+                if toggleConfig.Callback then
+                    toggleConfig.Callback(toggleValue)
+                end
             end)
             
             table.insert(elements, toggleFrame)
@@ -256,10 +318,11 @@ function GUIHub:CreateWindow(config)
             dropdownButton.Size = UDim2.new(0, 100, 0, 30)
             dropdownButton.Position = UDim2.new(1, -100, 0, 15)
             dropdownButton.Text = dropdownConfig.Options[1] or "Select"
-            dropdownButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            dropdownButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             dropdownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             dropdownButton.TextScaled = true
             dropdownButton.Parent = dropdownFrame
+            AddShadow(dropdownButton)
             
             local dropdownArrow = Instance.new("TextLabel")
             dropdownArrow.Size = UDim2.new(0, 20, 0, 20)
@@ -272,9 +335,10 @@ function GUIHub:CreateWindow(config)
             local dropdownList = Instance.new("Frame")
             dropdownList.Size = UDim2.new(0, 100, 0, 0)
             dropdownList.Position = UDim2.new(1, -100, 0, 45)
-            dropdownList.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            dropdownList.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
             dropdownList.Visible = false
             dropdownList.Parent = dropdownFrame
+            AddShadow(dropdownList)
             
             local listLayout = Instance.new("UIListLayout")
             listLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -290,7 +354,7 @@ function GUIHub:CreateWindow(config)
                     local optionButton = Instance.new("TextButton")
                     optionButton.Size = UDim2.new(1, 0, 0, 30)
                     optionButton.Text = option
-                    optionButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                    optionButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
                     optionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
                     optionButton.TextScaled = true
                     optionButton.Parent = dropdownList
@@ -298,7 +362,16 @@ function GUIHub:CreateWindow(config)
                         dropdownButton.Text = option
                         dropdownList.Visible = false
                         dropdownList.Size = UDim2.new(0, 100, 0, 0)
-                        dropdownConfig.Callback(option)
+                        if dropdownConfig.Callback then
+                            dropdownConfig.Callback(option)
+                        end
+                    end)
+                    -- Hover effect for dropdown options
+                    optionButton.MouseEnter:Connect(function()
+                        TweenService:Create(optionButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}):Play()
+                    end)
+                    optionButton.MouseLeave:Connect(function()
+                        TweenService:Create(optionButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}):Play()
                     end)
                 end
                 dropdownList.Size = UDim2.new(0, 100, 0, #dropdownConfig.Options * 30)
@@ -328,16 +401,18 @@ function GUIHub:CreateWindow(config)
             currentTab = tabs[index]
             for i, btn in pairs(tabList:GetChildren()) do
                 if btn:IsA("TextButton") then
-                    btn.BackgroundColor3 = i == index and Color3.fromRGB(60, 60, 60) or Color3.fromRGB(40, 40, 40)
+                    btn.BackgroundColor3 = i == index and Color3.fromRGB(60, 60, 60) or Color3.fromRGB(20, 20, 20)
                 end
             end
+        else
+            warn("Invalid tab index: " .. tostring(index))
         end
     end
     
     function window:SetTheme(theme)
-        mainFrame.BackgroundColor3 = theme == "Dark" and Color3.fromRGB(30, 30, 30) or Color3.fromRGB(200, 200, 200)
-        contentContainer.BackgroundColor3 = theme == "Dark" and Color3.fromRGB(35, 35, 35) or Color3.fromRGB(220, 220, 220)
-        tabContainer.BackgroundColor3 = theme == "Dark" and Color3.fromRGB(40, 40, 40) or Color3.fromRGB(180, 180, 180)
+        mainFrame.BackgroundColor3 = theme == "Darker" and Color3.fromRGB(15, 15, 15) or Color3.fromRGB(200, 200, 200)
+        contentContainer.BackgroundColor3 = theme == "Darker" and Color3.fromRGB(18, 18, 18) or Color3.fromRGB(220, 220, 220)
+        tabContainer.BackgroundColor3 = theme == "Darker" and Color3.fromRGB(20, 20, 20) or Color3.fromRGB(180, 180, 180)
     end
     
     -- Minimize functionality (external button)
@@ -360,7 +435,7 @@ function GUIHub:CreateWindow(config)
         minimized = not minimized
         contentContainer.Visible = not minimized
         tabContainer.Visible = not minimized
-        mainFrame.Size = minimized and UDim2.new(0, config.Size.X.Offset, 0, 30) or config.Size
+        mainFrame.Size = minimized and UDim2.new(0, config.Size.X.Offset, 0, 40) or config.Size
     end)
     
     maximizeWindowButton.MouseButton1Click:Connect(function()
@@ -380,6 +455,13 @@ function GUIHub:CreateWindow(config)
         if input.KeyCode == config.MinimizeKey then
             isVisible = not isVisible
             mainFrame.Visible = isVisible
+            local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+            if isVisible then
+                mainFrame.BackgroundTransparency = 1
+                TweenService:Create(mainFrame, tweenInfo, {BackgroundTransparency = 0}):Play()
+            else
+                TweenService:Create(mainFrame, tweenInfo, {BackgroundTransparency = 1}):Play()
+            end
         end
     end)
     
