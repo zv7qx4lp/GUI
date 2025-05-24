@@ -1,6 +1,6 @@
 -- GUIHub.lua
--- A simple Roblox GUI library for creating hubs with tabs, buttons, toggles, and animations
--- Host this on your GitHub repository (e.g., https://github.com/YourUsername/GUIHub)
+-- A modern Roblox GUI library with external Minimize button and toggle functionality
+-- Host this on your GitHub repository
 
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -11,7 +11,7 @@ local GUIHub = {}
 -- Create a ScreenGui
 local function CreateScreenGui()
     local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "YourNameHub"
+    screenGui.Name = "DingaHub"
     screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
     screenGui.ResetOnSpawn = false
     return screenGui
@@ -24,15 +24,13 @@ function GUIHub:CreateWindow(config)
     
     -- Default configuration
     local defaultConfig = {
-        Title = "GUI Hub",
-        SubTitle = "Made by Creator",
+        Title = "DingaHub",
+        SubTitle = "t.me/DingaScripts",
         IconMinimize = "",
         TabWidth = 150,
         Size = UDim2.new(0, 600, 0, 400),
-        Theme = "Darker",
-        MinimizeKey = Enum.KeyCode.LeftControl,
-        AnimationIn = "FadeIn",
-        AnimationOut = "FadeOut"
+        Theme = "Dark",
+        MinimizeKey = Enum.KeyCode.LeftControl
     }
     
     -- Merge user config with defaults
@@ -41,13 +39,25 @@ function GUIHub:CreateWindow(config)
     end
     config = defaultConfig
     
+    -- Create external Minimize button
+    local minimizeButton = Instance.new("TextButton")
+    minimizeButton.Size = UDim2.new(0, 50, 0, 50)
+    minimizeButton.Position = UDim2.new(0, 10, 0, 10)
+    minimizeButton.Text = "Minimize"
+    minimizeButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    minimizeButton.BorderSizePixel = 0
+    minimizeButton.TextScaled = true
+    minimizeButton.Parent = screenGui
+    
     -- Create main frame
     local mainFrame = Instance.new("Frame")
     mainFrame.Size = config.Size
     mainFrame.Position = UDim2.new(0.5, -config.Size.X.Offset / 2, 0.5, -config.Size.Y.Offset / 2)
-    mainFrame.BackgroundColor3 = config.Theme == "Darker" and Color3.fromRGB(30, 30, 30) or Color3.fromRGB(200, 200, 200)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     mainFrame.BorderSizePixel = 0
     mainFrame.Parent = screenGui
+    mainFrame.Visible = false -- Initially hidden
     
     -- Title bar
     local titleBar = Instance.new("Frame")
@@ -63,25 +73,39 @@ function GUIHub:CreateWindow(config)
     titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     titleLabel.BackgroundTransparency = 1
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.TextScaled = true
     titleLabel.Parent = titleBar
     
-    -- Minimize button
-    local minimizeButton = Instance.new("TextButton")
-    minimizeButton.Size = UDim2.new(0, 30, 0, 30)
-    minimizeButton.Position = UDim2.new(1, -90, 0, 0)
-    minimizeButton.Text = "-"
-    minimizeButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-    minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    minimizeButton.Parent = titleBar
+    -- Window buttons
+    local windowButtons = Instance.new("Frame")
+    windowButtons.Size = UDim2.new(0, 90, 1, 0)
+    windowButtons.Position = UDim2.new(1, -90, 0, 0)
+    windowButtons.BackgroundTransparency = 1
+    windowButtons.Parent = titleBar
     
-    -- Close button
+    local minimizeWindowButton = Instance.new("TextButton")
+    minimizeWindowButton.Size = UDim2.new(0, 30, 0, 30)
+    minimizeWindowButton.Position = UDim2.new(0, 0, 0, 0)
+    minimizeWindowButton.Text = "-"
+    minimizeWindowButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    minimizeWindowButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    minimizeWindowButton.Parent = windowButtons
+    
+    local maximizeWindowButton = Instance.new("TextButton")
+    maximizeWindowButton.Size = UDim2.new(0, 30, 0, 30)
+    maximizeWindowButton.Position = UDim2.new(0, 30, 0, 0)
+    maximizeWindowButton.Text = "□"
+    maximizeWindowButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    maximizeWindowButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    maximizeWindowButton.Parent = windowButtons
+    
     local closeButton = Instance.new("TextButton")
     closeButton.Size = UDim2.new(0, 30, 0, 30)
-    closeButton.Position = UDim2.new(1, -30, 0, 0)
+    closeButton.Position = UDim2.new(0, 60, 0, 0)
     closeButton.Text = "X"
     closeButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
     closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    closeButton.Parent = titleBar
+    closeButton.Parent = windowButtons
     
     -- Tab container
     local tabContainer = Instance.new("Frame")
@@ -90,6 +114,16 @@ function GUIHub:CreateWindow(config)
     tabContainer.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     tabContainer.BorderSizePixel = 0
     tabContainer.Parent = mainFrame
+    
+    local tabList = Instance.new("ScrollingFrame")
+    tabList.Size = UDim2.new(1, 0, 1, 0)
+    tabList.BackgroundTransparency = 1
+    tabList.ScrollBarThickness = 5
+    tabList.Parent = tabContainer
+    
+    local tabListLayout = Instance.new("UIListLayout")
+    tabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    tabListLayout.Parent = tabList
     
     -- Content container
     local contentContainer = Instance.new("Frame")
@@ -107,17 +141,24 @@ function GUIHub:CreateWindow(config)
         local tab = {}
         local tabButton = Instance.new("TextButton")
         tabButton.Size = UDim2.new(1, 0, 0, 50)
-        tabButton.Position = UDim2.new(0, 0, 0, #tabs * 50)
         tabButton.Text = tabConfig.Title
         tabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
         tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        tabButton.Parent = tabContainer
+        tabButton.TextScaled = true
+        tabButton.Parent = tabList
+        tabList.CanvasSize = UDim2.new(0, 0, 0, tabListLayout.AbsoluteContentSize.Y)
         
-        local tabContent = Instance.new("Frame")
+        local tabContent = Instance.new("ScrollingFrame")
         tabContent.Size = UDim2.new(1, 0, 1, 0)
         tabContent.BackgroundTransparency = 1
+        tabContent.ScrollBarThickness = 5
         tabContent.Parent = contentContainer
         tabContent.Visible = false
+        
+        local contentLayout = Instance.new("UIListLayout")
+        contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        contentLayout.Padding = UDim.new(0, 10)
+        contentLayout.Parent = tabContent
         
         tabButton.MouseButton1Click:Connect(function()
             if currentTab then
@@ -125,45 +166,54 @@ function GUIHub:CreateWindow(config)
             end
             tabContent.Visible = true
             currentTab = tabContent
+            for _, btn in pairs(tabList:GetChildren()) do
+                if btn:IsA("TextButton") then
+                    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                end
+            end
+            tabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
         end)
         
         local elements = {}
         function tab:AddSection(title)
             local sectionLabel = Instance.new("TextLabel")
             sectionLabel.Size = UDim2.new(1, 0, 0, 30)
-            sectionLabel.Position = UDim2.new(0, 0, 0, #elements * 50)
             sectionLabel.Text = title
-            sectionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+            sectionLabel.TextColor3 = Color3.fromRGB(150, 150, 255)
             sectionLabel.BackgroundTransparency = 1
+            sectionLabel.TextScaled = true
             sectionLabel.Parent = tabContent
             table.insert(elements, sectionLabel)
+            tabContent.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y)
         end
         
         function tab:AddButton(buttonConfig)
             local button = Instance.new("TextButton")
             button.Size = UDim2.new(1, -20, 0, 40)
-            button.Position = UDim2.new(0, 10, 0, #elements * 50)
-            button.Text = buttonConfig.Title .. "\n" .. (buttonConfig.Description or "")
+            button.Position = UDim2.new(0, 10, 0, 0)
+            button.Text = buttonConfig.Title
             button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
             button.TextColor3 = Color3.fromRGB(255, 255, 255)
+            button.TextScaled = true
             button.Parent = tabContent
             button.MouseButton1Click:Connect(buttonConfig.Callback)
             table.insert(elements, button)
+            tabContent.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y)
         end
         
         function tab:AddToggle(toggleConfig)
             local toggleFrame = Instance.new("Frame")
             toggleFrame.Size = UDim2.new(1, -20, 0, 60)
-            toggleFrame.Position = UDim2.new(0, 10, 0, #elements * 50)
             toggleFrame.BackgroundTransparency = 1
             toggleFrame.Parent = tabContent
             
             local toggleLabel = Instance.new("TextLabel")
             toggleLabel.Size = UDim2.new(0.8, 0, 1, 0)
-            toggleLabel.Text = toggleConfig.Title .. "\n" .. (toggleConfig.Description or "")
+            toggleLabel.Text = toggleConfig.Title
             toggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
             toggleLabel.BackgroundTransparency = 1
             toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+            toggleLabel.TextScaled = true
             toggleLabel.Parent = toggleFrame
             
             local toggleButton = Instance.new("TextButton")
@@ -172,16 +222,97 @@ function GUIHub:CreateWindow(config)
             toggleButton.Text = toggleConfig.Default and "On" or "Off"
             toggleButton.BackgroundColor3 = toggleConfig.Default and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
             toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            toggleButton.TextScaled = true
             toggleButton.Parent = toggleFrame
             
             local toggleValue = toggleConfig.Default
             toggleButton.MouseButton1Click:Connect(function()
                 toggleValue = not toggleValue
                 toggleButton.Text = toggleValue and "On" or "Off"
+                toggleButton.BackgroundColor3 = toggleValue and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
                 toggleConfig.Callback(toggleValue)
             end)
             
             table.insert(elements, toggleFrame)
+            tabContent.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y)
+        end
+        
+        function tab:AddDropdown(dropdownConfig)
+            local dropdownFrame = Instance.new("Frame")
+            dropdownFrame.Size = UDim2.new(1, -20, 0, 60)
+            dropdownFrame.BackgroundTransparency = 1
+            dropdownFrame.Parent = tabContent
+            
+            local dropdownLabel = Instance.new("TextLabel")
+            dropdownLabel.Size = UDim2.new(0.8, 0, 1, 0)
+            dropdownLabel.Text = dropdownConfig.Title
+            dropdownLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            dropdownLabel.BackgroundTransparency = 1
+            dropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
+            dropdownLabel.TextScaled = true
+            dropdownLabel.Parent = dropdownFrame
+            
+            local dropdownButton = Instance.new("TextButton")
+            dropdownButton.Size = UDim2.new(0, 100, 0, 30)
+            dropdownButton.Position = UDim2.new(1, -100, 0, 15)
+            dropdownButton.Text = dropdownConfig.Options[1] or "Select"
+            dropdownButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            dropdownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            dropdownButton.TextScaled = true
+            dropdownButton.Parent = dropdownFrame
+            
+            local dropdownArrow = Instance.new("TextLabel")
+            dropdownArrow.Size = UDim2.new(0, 20, 0, 20)
+            dropdownArrow.Position = UDim2.new(1, -20, 0, 5)
+            dropdownArrow.Text = "▼"
+            dropdownArrow.BackgroundTransparency = 1
+            dropdownArrow.TextColor3 = Color3.fromRGB(255, 255, 255)
+            dropdownArrow.Parent = dropdownButton
+            
+            local dropdownList = Instance.new("Frame")
+            dropdownList.Size = UDim2.new(0, 100, 0, 0)
+            dropdownList.Position = UDim2.new(1, -100, 0, 45)
+            dropdownList.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            dropdownList.Visible = false
+            dropdownList.Parent = dropdownFrame
+            
+            local listLayout = Instance.new("UIListLayout")
+            listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            listLayout.Parent = dropdownList
+            
+            local function updateDropdownList()
+                for _, child in pairs(dropdownList:GetChildren()) do
+                    if child:IsA("TextButton") then
+                        child:Destroy()
+                    end
+                end
+                for i, option in ipairs(dropdownConfig.Options) do
+                    local optionButton = Instance.new("TextButton")
+                    optionButton.Size = UDim2.new(1, 0, 0, 30)
+                    optionButton.Text = option
+                    optionButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                    optionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    optionButton.TextScaled = true
+                    optionButton.Parent = dropdownList
+                    optionButton.MouseButton1Click:Connect(function()
+                        dropdownButton.Text = option
+                        dropdownList.Visible = false
+                        dropdownList.Size = UDim2.new(0, 100, 0, 0)
+                        dropdownConfig.Callback(option)
+                    end)
+                end
+                dropdownList.Size = UDim2.new(0, 100, 0, #dropdownConfig.Options * 30)
+            end
+            
+            updateDropdownList()
+            
+            dropdownButton.MouseButton1Click:Connect(function()
+                dropdownList.Visible = not dropdownList.Visible
+                dropdownList.Size = dropdownList.Visible and UDim2.new(0, 100, 0, #dropdownConfig.Options * 30) or UDim2.new(0, 100, 0, 0)
+            end)
+            
+            table.insert(elements, dropdownFrame)
+            tabContent.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y)
         end
         
         table.insert(tabs, tabContent)
@@ -195,24 +326,48 @@ function GUIHub:CreateWindow(config)
             end
             tabs[index].Visible = true
             currentTab = tabs[index]
+            for i, btn in pairs(tabList:GetChildren()) do
+                if btn:IsA("TextButton") then
+                    btn.BackgroundColor3 = i == index and Color3.fromRGB(60, 60, 60) or Color3.fromRGB(40, 40, 40)
+                end
+            end
         end
     end
     
     function window:SetTheme(theme)
-        mainFrame.BackgroundColor3 = theme == "Darker" and Color3.fromRGB(30, 30, 30) or Color3.fromRGB(200, 200, 200)
-        contentContainer.BackgroundColor3 = theme == "Darker" and Color3.fromRGB(35, 35, 35) or Color3.fromRGB(220, 220, 220)
+        mainFrame.BackgroundColor3 = theme == "Dark" and Color3.fromRGB(30, 30, 30) or Color3.fromRGB(200, 200, 200)
+        contentContainer.BackgroundColor3 = theme == "Dark" and Color3.fromRGB(35, 35, 35) or Color3.fromRGB(220, 220, 220)
+        tabContainer.BackgroundColor3 = theme == "Dark" and Color3.fromRGB(40, 40, 40) or Color3.fromRGB(180, 180, 180)
     end
     
-    -- Minimize functionality
-    local minimized = false
+    -- Minimize functionality (external button)
+    local isVisible = false
     minimizeButton.MouseButton1Click:Connect(function()
+        isVisible = not isVisible
+        mainFrame.Visible = isVisible
+        local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+        if isVisible then
+            mainFrame.BackgroundTransparency = 1
+            TweenService:Create(mainFrame, tweenInfo, {BackgroundTransparency = 0}):Play()
+        else
+            TweenService:Create(mainFrame, tweenInfo, {BackgroundTransparency = 1}):Play()
+        end
+    end)
+    
+    -- Window minimize/maximize/close
+    local minimized = false
+    minimizeWindowButton.MouseButton1Click:Connect(function()
         minimized = not minimized
         contentContainer.Visible = not minimized
         tabContainer.Visible = not minimized
         mainFrame.Size = minimized and UDim2.new(0, config.Size.X.Offset, 0, 30) or config.Size
     end)
     
-    -- Close functionality
+    maximizeWindowButton.MouseButton1Click:Connect(function()
+        mainFrame.Size = mainFrame.Size == config.Size and UDim2.new(0, 800, 0, 600) or config.Size
+        mainFrame.Position = UDim2.new(0.5, -mainFrame.Size.X.Offset / 2, 0.5, -mainFrame.Size.Y.Offset / 2)
+    end)
+    
     closeButton.MouseButton1Click:Connect(function()
         if window.OnClose then
             window.OnClose()
@@ -223,16 +378,10 @@ function GUIHub:CreateWindow(config)
     -- Minimize key binding
     UserInputService.InputBegan:Connect(function(input)
         if input.KeyCode == config.MinimizeKey then
-            minimized = not minimized
-            contentContainer.Visible = not minimized
-            tabContainer.Visible = not minimized
-            mainFrame.Size = minimized and UDim2.new(0, config.Size.X.Offset, 0, 30) or config.Size
+            isVisible = not isVisible
+            mainFrame.Visible = isVisible
         end
     end)
-    
-    -- Fade-in animation
-    mainFrame.BackgroundTransparency = 1
-    TweenService:Create(mainFrame, TweenInfo.new(0.5), {BackgroundTransparency = 0}):Play()
     
     return window
 end
