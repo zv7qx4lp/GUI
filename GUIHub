@@ -129,7 +129,6 @@ function GUIHub:CreateWindow(config)
     minimizeButton.Parent = screenGui
     AddShadow(minimizeButton)
     
-    -- Square shape, no UICorner
     ApplyHoverEffect(minimizeButton, currentTheme.Secondary, currentTheme.ButtonHover)
     ApplyClickAnimation(minimizeButton)
     
@@ -648,7 +647,6 @@ function GUIHub:CreateWindow(config)
             tabContent.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y)
         end
         
-        -- Add TextBox element
         function tab:AddTextBox(textBoxConfig)
             if not textBoxConfig or not textBoxConfig.Title then
                 warn("Invalid textbox configuration: Title required")
@@ -700,7 +698,8 @@ function GUIHub:CreateWindow(config)
         
         table.insert(tabs, tabContent)
         if #tabs == 1 then
-            tabButton:SimulateClick()
+            -- Replace SimulateClick with manual event trigger
+            tabButton.MouseButton1Click:Fire()
         end
         return tab
     end
