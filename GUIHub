@@ -1,5 +1,5 @@
 -- GUIHub.lua
--- A professional Roblox GUI library with Fluent-inspired design, animations, and draggable Minimize icon
+-- A professional Roblox GUI library with Fluent-inspired anime design, animations, and draggable Minimize icon
 -- Host this on your GitHub repository
 
 local UserInputService = game:GetService("UserInputService")
@@ -278,6 +278,8 @@ function GUIHub:CreateWindow(config)
             sectionLabel.TextColor3 = Color3.fromRGB(150, 150, 255)
             sectionLabel.BackgroundTransparency = 1
             sectionLabel.TextScaled = true
+            sectionLabel.TextXAlignment = Enum.TextXAlignment.Left
+            sectionLabel.Position = UDim2.new(0, 10, 0, 0) -- Corner placement
             sectionLabel.Parent = tabContent
             table.insert(elements, sectionLabel)
             tabContent.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y)
@@ -286,7 +288,7 @@ function GUIHub:CreateWindow(config)
         function tab:AddButton(buttonConfig)
             local button = Instance.new("TextButton")
             button.Size = UDim2.new(1, -20, 0, 40)
-            button.Position = UDim2.new(0, 10, 0, 0)
+            button.Position = UDim2.new(0, 10, 0, 0) -- Corner placement
             button.Text = buttonConfig.Title
             button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             button.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -317,6 +319,7 @@ function GUIHub:CreateWindow(config)
             
             local toggleLabel = Instance.new("TextLabel")
             toggleLabel.Size = UDim2.new(0.8, 0, 1, 0)
+            toggleLabel.Position = UDim2.new(0, 10, 0, 0) -- Corner placement
             toggleLabel.Text = toggleConfig.Title
             toggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
             toggleLabel.BackgroundTransparency = 1
@@ -326,13 +329,17 @@ function GUIHub:CreateWindow(config)
             
             local toggleButton = Instance.new("TextButton")
             toggleButton.Size = UDim2.new(0, 60, 0, 30)
-            toggleButton.Position = UDim2.new(1, -60, 0, 15)
+            toggleButton.Position = UDim2.new(1, -70, 0, 15) -- Right corner
             toggleButton.Text = toggleConfig.Default and "On" or "Off"
             toggleButton.BackgroundColor3 = toggleConfig.Default and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
             toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             toggleButton.TextScaled = true
             toggleButton.Parent = toggleFrame
             AddShadow(toggleButton)
+            
+            local toggleCorner = Instance.new("UICorner")
+            toggleCorner.CornerRadius = UDim.new(0, 8)
+            toggleCorner.Parent = toggleButton
             
             local toggleValue = toggleConfig.Default
             toggleButton.MouseButton1Click:Connect(function()
@@ -356,6 +363,7 @@ function GUIHub:CreateWindow(config)
             
             local dropdownLabel = Instance.new("TextLabel")
             dropdownLabel.Size = UDim2.new(0.8, 0, 1, 0)
+            dropdownLabel.Position = UDim2.new(0, 10, 0, 0) -- Corner placement
             dropdownLabel.Text = dropdownConfig.Title
             dropdownLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
             dropdownLabel.BackgroundTransparency = 1
@@ -365,13 +373,17 @@ function GUIHub:CreateWindow(config)
             
             local dropdownButton = Instance.new("TextButton")
             dropdownButton.Size = UDim2.new(0, 100, 0, 30)
-            dropdownButton.Position = UDim2.new(1, -100, 0, 15)
+            dropdownButton.Position = UDim2.new(1, -110, 0, 15) -- Right corner
             dropdownButton.Text = dropdownConfig.Options[1] or "Select"
             dropdownButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             dropdownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             dropdownButton.TextScaled = true
             dropdownButton.Parent = dropdownFrame
             AddShadow(dropdownButton)
+            
+            local dropdownCorner = Instance.new("UICorner")
+            dropdownCorner.CornerRadius = UDim.new(0, 8)
+            dropdownCorner.Parent = dropdownButton
             
             local dropdownArrow = Instance.new("TextLabel")
             dropdownArrow.Size = UDim2.new(0, 20, 0, 20)
@@ -383,7 +395,7 @@ function GUIHub:CreateWindow(config)
             
             local dropdownList = Instance.new("Frame")
             dropdownList.Size = UDim2.new(0, 100, 0, 0)
-            dropdownList.Position = UDim2.new(1, -100, 0, 45)
+            dropdownList.Position = UDim2.new(1, -110, 0, 45)
             dropdownList.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
             dropdownList.Visible = false
             dropdownList.Parent = dropdownFrame
@@ -459,62 +471,6 @@ function GUIHub:CreateWindow(config)
     end
     
     function window:SetTheme(theme)
-        mainFrame.BackgroundColor3 = theme == "Darker" and Color3.fromRGB(15, 15, 15) or Color3.fromRGB(200, 200, 200)
-        contentContainer.BackgroundColor3 = theme == "Darker" and Color3.fromRGB(18, 18, 18) or Color3.fromRGB(220, 220, 220)
-        tabContainer.BackgroundColor3 = theme == "Darker" and Color3.fromRGB(20, 20, 20) or Color3.fromRGB(180, 180, 180)
-    end
-    
-    -- Minimize functionality (external button)
-    local isVisible = false
-    minimizeButton.MouseButton1Click:Connect(function()
-        isVisible = not isVisible
-        mainFrame.Visible = isVisible
-        local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-        if isVisible then
-            mainFrame.BackgroundTransparency = 1
-            TweenService:Create(mainFrame, tweenInfo, {BackgroundTransparency = 0}):Play()
-        else
-            TweenService:Create(mainFrame, tweenInfo, {BackgroundTransparency = 1}):Play()
-        end
-    end)
-    
-    -- Window minimize/maximize/close
-    local minimized = false
-    minimizeWindowButton.MouseButton1Click:Connect(function()
-        minimized = not minimized
-        contentContainer.Visible = not minimized
-        tabContainer.Visible = not minimized
-        mainFrame.Size = minimized and UDim2.new(0, config.Size.X.Offset, 0, 40) or config.Size
-    end)
-    
-    maximizeWindowButton.MouseButton1Click:Connect(function()
-        mainFrame.Size = mainFrame.Size == config.Size and UDim2.new(0, 800, 0, 600) or config.Size
-        mainFrame.Position = UDim2.new(0.5, -mainFrame.Size.X.Offset / 2, 0.5, -mainFrame.Size.Y.Offset / 2)
-    end)
-    
-    closeButton.MouseButton1Click:Connect(function()
-        if window.OnClose then
-            window.OnClose()
-        end
-        screenGui:Destroy()
-    end)
-    
-    -- Minimize key binding
-    UserInputService.InputBegan:Connect(function(input)
-        if input.KeyCode == config.MinimizeKey then
-            isVisible = not isVisible
-            mainFrame.Visible = isVisible
-            local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-            if isVisible then
-                mainFrame.BackgroundTransparency = 1
-                TweenService:Create(mainFrame, tweenInfo, {BackgroundTransparency = 0}):Play()
-            else
-                TweenService:Create(mainFrame, tweenInfo, {BackgroundTransparency = 1}):Play()
-            end
-        end
-    end)
-    
-    return window
-end
+        mainFrame.BackgroundColor
 
-return GUIHub
+---
